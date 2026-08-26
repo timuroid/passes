@@ -32,6 +32,7 @@ class PassRequest(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     vehicle_number: Mapped[str] = mapped_column(String(24))
+    phone_number: Mapped[str | None] = mapped_column(String(16), nullable=True)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, index=True)
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)
     hidden_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -52,4 +53,3 @@ class SessionToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     user: Mapped[User] = relationship(lazy="joined")
-

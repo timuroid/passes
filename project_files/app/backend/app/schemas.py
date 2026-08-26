@@ -12,6 +12,7 @@ class LoginRequest(BaseModel):
 
 class PublicPassCreate(BaseModel):
     vehicle_number: str = Field(min_length=2, max_length=24)
+    phone_number: str = Field(min_length=1, max_length=40)
 
     @field_validator("vehicle_number")
     @classmethod
@@ -22,6 +23,19 @@ class PublicPassCreate(BaseModel):
         if not all(char.isalnum() or char in {" ", "-"} for char in normalized):
             raise ValueError("Допустимы буквы, цифры, пробел и дефис")
         return normalized
+
+    @field_validator("phone_number")
+    @classmethod
+    def normalize_phone_number(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("Введите номер телефона")
+        if not re.fullmatch(r"[0-9+().\s-]+", normalized):
+            raise ValueError("Телефон может содержать цифры, пробелы, скобки, дефис и +")
+        digits = re.sub(r"\D", "", normalized)
+        if not 7 <= len(digits) <= 15:
+            raise ValueError("Телефон должен содержать от 7 до 15 цифр")
+        return f"+{digits}" if normalized.startswith("+") else digits
 
 
 class VisibilityUpdate(BaseModel):
@@ -72,6 +86,7 @@ class PassView(BaseModel):
 
     id: int
     vehicle_number: str
+    phone_number: str | None
     submitted_at: datetime
     is_hidden: bool
     hidden_at: datetime | None

@@ -77,10 +77,13 @@ a { color: inherit; }
 .eyebrow { color: var(--brand); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .13em; }
 .lead { color: var(--muted); font-size: clamp(18px, 2vw, 22px); line-height: 1.55; max-width: 720px; margin: 0 0 38px; }
 .lead.compact { font-size: 17px; margin-bottom: 28px; }
-.pass-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(196px, .28fr); gap: 16px; width: min(100%, 960px); max-width: none; }
+.pass-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(196px, .28fr); grid-template-areas: "vehicle submit" "phone submit" "message message"; gap: 16px; width: min(100%, 960px); max-width: none; }
 .pass-form label { grid-column: 1 / -1; font-weight: 750; margin-bottom: 8px; }
-.pass-form input { min-width: 0; height: 100px; padding: 0 28px; font-size: clamp(28px, 3vw, 40px); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.pass-form .button { min-height: 100px; padding-inline: 28px; font-size: 20px; }
+.pass-form input { min-width: 0; }
+#vehicle-number { grid-area: vehicle; height: 100px; padding: 0 28px; font-size: clamp(28px, 3vw, 40px); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+#phone-number { grid-area: phone; height: 64px; padding: 0 20px; font-size: 19px; letter-spacing: .02em; }
+.pass-form .button { grid-area: submit; min-height: 100px; padding-inline: 28px; font-size: 20px; }
+.pass-form .form-message { grid-area: message; }
 .pass-form input:focus, .stack-form input:focus, select:focus { outline: 3px solid color-mix(in srgb, var(--brand) 22%, transparent); border-color: var(--brand); }
 .field-hint { grid-column: 1 / -1; margin: 9px 0 0; color: var(--muted); font-size: 13px; }
 .button { border: 0; border-radius: 11px; padding: 13px 18px; font-weight: 750; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .15s ease, background .15s ease, opacity .15s ease; }
@@ -151,6 +154,7 @@ th, td { padding: 15px 18px; text-align: left; border-bottom: 1px solid var(--li
 th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; background: var(--surface-soft); }
 td { font-size: 14px; }
 .vehicle-cell { font-size: 17px; font-weight: 800; letter-spacing: .045em; }
+.phone-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .badge { display: inline-flex; padding: 5px 9px; border-radius: 99px; font-size: 12px; font-weight: 800; }
 .badge-visible { color: var(--brand-dark); background: var(--brand-soft); }
 .badge-hidden { color: var(--warning); background: var(--warning-soft); }
@@ -193,9 +197,10 @@ td { font-size: 14px; }
   .hero-card, .qr-card, .login-card { padding: 26px 20px; border-radius: 16px; }
   .hero-card { min-height: 540px; padding-block: 42px; }
   .hero-card h1 { font-size: 48px; margin-bottom: 32px; }
-  .pass-form { grid-template-columns: 1fr; row-gap: 10px; }
+  .pass-form { grid-template-columns: 1fr; grid-template-areas: "vehicle" "phone" "submit" "message"; row-gap: 10px; }
   .pass-form input, .pass-form button { width: 100%; }
-  .pass-form input { height: 82px; padding: 0 20px; font-size: 28px; }
+  #vehicle-number { height: 82px; padding: 0 20px; font-size: 28px; }
+  #phone-number { height: 64px; padding: 0 18px; font-size: 17px; }
   .pass-form .button { min-height: 76px; font-size: 18px; }
   .pass-form label, .field-hint, .form-message { grid-column: 1; }
   .qr-card { grid-template-columns: 1fr; align-items: start; gap: 26px; }

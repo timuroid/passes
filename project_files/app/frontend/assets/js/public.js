@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   "use strict";
   const form = document.getElementById("pass-form");
   const input = document.getElementById("vehicle-number");
+  const phoneInput = document.getElementById("phone-number");
   const button = document.getElementById("submit-button");
   const message = document.getElementById("form-message");
   const copyButton = document.getElementById("copy-link");
@@ -26,11 +27,19 @@ document.addEventListener("DOMContentLoaded", () => {
       input.focus();
       return;
     }
+    const phone = phoneInput.value.trim();
+    if (!phone || !/^[0-9+().\s-]+$/.test(phone) || phone.replace(/\D/g, "").length < 7 || phone.replace(/\D/g, "").length > 15) {
+      setMessage(I18n.t("invalidPhone"), "error");
+      phoneInput.focus();
+      return;
+    }
     button.disabled = true;
     button.textContent = I18n.t("sending");
     setMessage("", "");
     try {
-      const created = await Api.request("/api/public/passes", { method: "POST", body: { vehicle_number: number } });
+      const created = await Api.request("/api/public/passes", {
+        method: "POST", body: { vehicle_number: number, phone_number: phone }
+      });
       setMessage(I18n.t("sent", { number: created.vehicle_number }), "success");
       form.reset();
     } catch (error) {
@@ -51,4 +60,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-

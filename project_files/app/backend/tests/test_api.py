@@ -19,9 +19,12 @@ def test_login_rejects_bad_password(client: TestClient):
 def test_public_submit_logist_visibility_and_filters(app):
     public_client = TestClient(app)
     logist_client = TestClient(app)
-    response = public_client.post("/api/public/passes", json={"vehicle_number": " а 123 вс-77 "})
+    response = public_client.post(
+        "/api/public/passes", json={"vehicle_number": " а 123 вс-77 ", "phone_number": "+7 (999) 123-45-67"}
+    )
     assert response.status_code == 201
     assert response.json()["vehicle_number"] == "А 123 ВС-77"
+    assert response.json()["phone_number"] == "+79991234567"
 
     login(logist_client, "logist", "Logist-Local-2026!")
     today = date.today().isoformat()
@@ -32,6 +35,13 @@ def test_public_submit_logist_visibility_and_filters(app):
     assert response.status_code == 200
     assert response.json()["meta"]["total"] == 1
     assert response.json()["items"][0]["vehicle_number"] == "А 123 ВС-77"
+    assert response.json()["items"][0]["phone_number"] == "+79991234567"
+
+
+def test_public_submit_phone_validation(client: TestClient):
+    assert client.post("/api/public/passes", json={"vehicle_number": "TEST 700"}).status_code == 422
+    response = client.post("/api/public/passes", json={"vehicle_number": "TEST 701", "phone_number": "not-a-phone"})
+    assert response.status_code == 422
 
 
 def test_admin_soft_hide_restore_and_users(app):
@@ -39,7 +49,9 @@ def test_admin_soft_hide_restore_and_users(app):
     logist_client = TestClient(app)
     admin_client = TestClient(app)
 
-    created = public_client.post("/api/public/passes", json={"vehicle_number": "SMOKE 900"}).json()
+    created = public_client.post(
+        "/api/public/passes", json={"vehicle_number": "SMOKE 900", "phone_number": "+79990000001"}
+    ).json()
     pass_id = created["id"]
     login(logist_client, "logist", "Logist-Local-2026!")
     admin_csrf = login(admin_client, "admin", "Admin-Local-2026!")
@@ -76,7 +88,9 @@ def test_admin_soft_hide_restore_and_users(app):
 def test_logist_cannot_hide_or_list_users(app):
     public_client = TestClient(app)
     logist_client = TestClient(app)
-    item = public_client.post("/api/public/passes", json={"vehicle_number": "TEST 101"}).json()
+    item = public_client.post(
+        "/api/public/passes", json={"vehicle_number": "TEST 101", "phone_number": "+79990000101"}
+    ).json()
     csrf = login(logist_client, "logist", "Logist-Local-2026!")
     assert logist_client.patch(
         f"/api/passes/{item['id']}/visibility",
@@ -89,7 +103,9 @@ def test_logist_cannot_hide_or_list_users(app):
 def test_csrf_required_for_admin_change(app):
     public_client = TestClient(app)
     admin_client = TestClient(app)
-    item = public_client.post("/api/public/passes", json={"vehicle_number": "TEST 202"}).json()
+    item = public_client.post(
+        "/api/public/passes", json={"vehicle_number": "TEST 202", "phone_number": "+79990000202"}
+    ).json()
     login(admin_client, "admin", "Admin-Local-2026!")
     response = admin_client.patch(f"/api/passes/{item['id']}/visibility", json={"hidden": True})
     assert response.status_code == 403

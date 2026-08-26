@@ -27,10 +27,10 @@ Base path: `/api`. Формат запросов и ответов — JSON, к�
 Не требует входа.
 
 ```json
-{"vehicle_number":"А 123 ВС 77"}
+{"vehicle_number":"А 123 ВС 77","phone_number":"+7 (999) 123-45-67"}
 ```
 
-Номер нормализуется: внешние/повторные пробелы убираются, буквы переводятся в верхний регистр. Разрешены 2–24 Unicode-буквы/цифры, пробел и дефис.
+Номер автомобиля нормализуется: внешние/повторные пробелы убираются, буквы переводятся в верхний регистр. `phone_number` обязателен; допускаются 7–15 цифр, пробелы, скобки, дефис и `+`, в ответе он возвращается в нормализованном виде.
 
 ### `GET /api/public/driver-qr.svg`
 
@@ -48,7 +48,7 @@ Base path: `/api`. Формат запросов и ответов — JSON, к�
 |---|---|---|
 | `date_from` | `YYYY-MM-DD` | без нижней границы |
 | `date_to` | `YYYY-MM-DD`, включительно | без верхней границы |
-| `sort` | `asc`, `desc` | `asc` |
+| `sort` | `asc`, `desc` | `desc` |
 | `page` | целое от 1 | `1` |
 | `page_size` | 10–100 | `25` |
 | `visibility` | `visible`, `hidden`, `all` | `visible` |
@@ -61,13 +61,14 @@ Base path: `/api`. Формат запросов и ответов — JSON, к�
   "items": [{
     "id": 1,
     "vehicle_number": "А 123 ВС 77",
+    "phone_number": "+79991234567",
     "submitted_at": "2026-08-24T09:00:00Z",
     "is_hidden": false,
     "hidden_at": null,
     "hidden_by_user_id": null,
     "restored_at": null
   }],
-  "meta": {"page":1,"page_size":25,"total":1,"pages":1,"sort":"asc"}
+  "meta": {"page":1,"page_size":25,"total":1,"pages":1,"sort":"desc"}
 }
 ```
 

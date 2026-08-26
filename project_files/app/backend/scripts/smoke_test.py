@@ -55,16 +55,22 @@ def main():
     base_url = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
     suffix = str(int(time.time()))[-7:]
     vehicle_number = f"SMK-{suffix}"
+    phone_number = f"+7999{suffix}"
     public = ApiClient(base_url)
     logist = ApiClient(base_url)
     admin = ApiClient(base_url)
 
-    status, created = public.request("POST", "/api/public/passes", {"vehicle_number": vehicle_number})
-    assert status == 201 and created["vehicle_number"] == vehicle_number
+    status, created = public.request(
+        "POST", "/api/public/passes", {"vehicle_number": vehicle_number, "phone_number": phone_number}
+    )
+    assert status == 201 and created["vehicle_number"] == vehicle_number and created["phone_number"] == phone_number
     pass_id = created["id"]
 
     logist.login("logist", "Logist-Local-2026!")
-    assert any(item["id"] == pass_id for item in find(logist, vehicle_number))
+    assert any(
+        item["id"] == pass_id and item["phone_number"] == phone_number
+        for item in find(logist, vehicle_number)
+    )
 
     admin.login("admin", "Admin-Local-2026!")
     _, hidden = admin.request("PATCH", f"/api/passes/{pass_id}/visibility", {"hidden": True})

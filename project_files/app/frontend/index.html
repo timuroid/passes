@@ -38,6 +38,9 @@
         <input id="vehicle-number" name="vehicle_number" type="text" minlength="2" maxlength="24"
                autocomplete="off" autocapitalize="characters" spellcheck="false"
                data-i18n-placeholder="vehiclePlaceholder" placeholder="А 123 ВС 77" required>
+        <label class="sr-only" for="phone-number" data-i18n="phoneLabel">Номер телефона</label>
+        <input id="phone-number" name="phone_number" type="tel" maxlength="40" inputmode="tel" autocomplete="tel"
+               data-i18n-placeholder="phonePlaceholder" placeholder="+7 999 123-45-67" required>
         <button id="submit-button" class="button button-primary" type="submit" data-i18n="send">Отправить</button>
         <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
       </form>

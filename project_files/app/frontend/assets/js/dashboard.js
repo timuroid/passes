@@ -50,8 +50,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       const row = document.createElement("tr");
       const id = document.createElement("td"); id.textContent = item.id;
       const vehicle = document.createElement("td"); vehicle.textContent = item.vehicle_number; vehicle.className = "vehicle-cell";
+      const phone = document.createElement("td"); phone.textContent = item.phone_number || "—"; phone.className = "phone-cell";
       const received = document.createElement("td"); received.textContent = formatDate(item.submitted_at);
-      row.append(id, vehicle, received);
+      row.append(id, vehicle, phone, received);
       if (admin) {
         const statusCell = document.createElement("td");
         const badge = document.createElement("span");

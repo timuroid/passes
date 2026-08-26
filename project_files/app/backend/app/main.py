@@ -164,7 +164,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 detail="Слишком много отправок. Повторите через минуту.",
                 headers={"Retry-After": "60"},
             )
-        item = PassRequest(vehicle_number=payload.vehicle_number)
+        item = PassRequest(vehicle_number=payload.vehicle_number, phone_number=payload.phone_number)
         db.add(item)
         db.commit()
         db.refresh(item)
@@ -192,7 +192,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def list_passes(
         date_from: date | None = None,
         date_to: date | None = None,
-        sort: Literal["asc", "desc"] = "asc",
+        sort: Literal["asc", "desc"] = "desc",
         page: int = Query(1, ge=1),
         page_size: int = Query(25, ge=10, le=100),
         visibility: Literal["visible", "hidden", "all"] = "visible",

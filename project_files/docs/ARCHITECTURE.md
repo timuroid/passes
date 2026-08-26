@@ -70,6 +70,7 @@ SSE-событие не переносит весь список. Оно соо�
 
 - `id` — первичный ключ;
 - `vehicle_number` — нормализованный номер, Unicode uppercase;
+- `phone_number` — обязательный для новых заявок нормализованный номер телефона водителя;
 - `submitted_at` — UTC timestamp;
 - `is_hidden` — текущее мягкое скрытие;
 - `hidden_at`, `hidden_by_user_id` — последнее скрытие;

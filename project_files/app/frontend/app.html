@@ -61,8 +61,8 @@
         <div class="filter-field">
           <label for="sort" data-i18n="sortOrder">Порядок</label>
           <select id="sort">
+            <option value="desc" selected data-i18n="newFirst">Сначала поздние</option>
             <option value="asc" data-i18n="oldFirst">Сначала ранние</option>
-            <option value="desc" data-i18n="newFirst">Сначала новые</option>
           </select>
         </div>
         <div id="visibility-field" class="filter-field hidden">
@@ -97,6 +97,7 @@
               <tr>
                 <th scope="col">#</th>
                 <th scope="col" data-i18n="vehicleNumber">Номер автомобиля</th>
+                <th scope="col" data-i18n="phoneNumber">Телефон</th>
                 <th scope="col" data-i18n="submittedAt">Получен</th>
                 <th id="status-heading" class="hidden" scope="col" data-i18n="status">Статус</th>
                 <th id="actions-heading" class="hidden" scope="col" data-i18n="actions">Действия</th>
