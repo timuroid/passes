@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
-  const state = { user: null, page: 1, pageSize: 25, meta: null, passes: [], users: [], activeTab: "passes" };
+  const state = { user: null, page: 1, pageSize: 25, meta: null, passes: [], users: [], activeTab: "passes", passwordTarget: null, actionsTarget: null };
   const elements = {
     currentUser: document.getElementById("current-user"),
     realtime: document.getElementById("realtime-status"), adminTabs: document.getElementById("admin-tabs"),
@@ -14,7 +14,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     usersBody: document.getElementById("users-body"), usersCount: document.getElementById("users-count"),
     usersLoading: document.getElementById("users-loading"), passesPanel: document.getElementById("passes-panel"),
     usersPanel: document.getElementById("users-panel"), toast: document.getElementById("toast"),
-    openQr: document.getElementById("open-qr"), qrDialog: document.getElementById("qr-dialog"), closeQr: document.getElementById("close-qr")
+    openQr: document.getElementById("open-qr"), qrDialog: document.getElementById("qr-dialog"), closeQr: document.getElementById("close-qr"),
+    passwordDialog: document.getElementById("password-dialog"), passwordDialogUser: document.getElementById("password-dialog-user"),
+    passwordForm: document.getElementById("password-update-form"), resetPassword: document.getElementById("reset-password"),
+    passwordMessage: document.getElementById("password-update-message"), passwordUpdateButton: document.getElementById("password-update-button"),
+    closePasswordDialog: document.getElementById("close-password-dialog"), newPassword: document.getElementById("new-password"),
+    toggleNewPassword: document.getElementById("toggle-new-password"), toggleResetPassword: document.getElementById("toggle-reset-password"),
+    userActionsDialog: document.getElementById("user-actions-dialog"), userActionsDialogUser: document.getElementById("user-actions-dialog-user"),
+    closeUserActionsDialog: document.getElementById("close-user-actions-dialog"), userActionPassword: document.getElementById("user-action-password"),
+    userActionActive: document.getElementById("user-action-active")
   };
 
   function locale() { return I18n.language === "tg" ? "tg-TJ" : "ru-RU"; }
@@ -33,6 +41,57 @@ document.addEventListener("DOMContentLoaded", async () => {
   function closeQrDialog() {
     if (typeof elements.qrDialog.close === "function") elements.qrDialog.close();
     else elements.qrDialog.removeAttribute("open");
+  }
+  function setPasswordToggle(input, button) {
+    const visible = input.type === "text";
+    button.textContent = I18n.t(visible ? "hidePassword" : "showPassword");
+    button.setAttribute("aria-label", I18n.t(visible ? "hidePassword" : "showPassword"));
+    button.setAttribute("aria-pressed", String(visible));
+  }
+  function togglePassword(input, button) {
+    input.type = input.type === "password" ? "text" : "password";
+    setPasswordToggle(input, button);
+  }
+  function openPasswordDialog(user) {
+    state.passwordTarget = user;
+    elements.passwordDialogUser.textContent = user.username;
+    elements.resetPassword.value = "";
+    elements.passwordMessage.textContent = "";
+    elements.passwordMessage.className = "form-message";
+    elements.resetPassword.type = "password";
+    setPasswordToggle(elements.resetPassword, elements.toggleResetPassword);
+    if (typeof elements.passwordDialog.showModal === "function") elements.passwordDialog.showModal();
+    else elements.passwordDialog.setAttribute("open", "");
+    elements.resetPassword.focus();
+  }
+  function closePasswordDialog() {
+    state.passwordTarget = null;
+    if (typeof elements.passwordDialog.close === "function") elements.passwordDialog.close();
+    else elements.passwordDialog.removeAttribute("open");
+  }
+  function syncUserActionDialog() {
+    const user = state.actionsTarget;
+    if (!user) return;
+    const ownAccount = user.id === state.user.id;
+    elements.userActionsDialogUser.textContent = user.username;
+    elements.userActionActive.classList.toggle("hidden", ownAccount);
+    if (!ownAccount) {
+      elements.userActionActive.disabled = false;
+      elements.userActionActive.className = `button ${user.is_active ? "button-danger" : "button-secondary"}`;
+      elements.userActionActive.textContent = I18n.t(user.is_active ? "disableUser" : "enableUser");
+    }
+  }
+  function openUserActionsDialog(user) {
+    state.actionsTarget = user;
+    syncUserActionDialog();
+    if (elements.userActionsDialog.open) return;
+    if (typeof elements.userActionsDialog.showModal === "function") elements.userActionsDialog.showModal();
+    else elements.userActionsDialog.setAttribute("open", "");
+  }
+  function closeUserActionsDialog() {
+    state.actionsTarget = null;
+    if (typeof elements.userActionsDialog.close === "function") elements.userActionsDialog.close();
+    else elements.userActionsDialog.removeAttribute("open");
   }
   function handleError(error) {
     if (error.status === 401) {
@@ -117,22 +176,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.usersBody.replaceChildren();
     state.users.forEach((user) => {
       const row = document.createElement("tr");
+      row.className = "user-row";
+      row.tabIndex = 0;
+      row.setAttribute("role", "button");
+      row.setAttribute("aria-label", I18n.t("openUserActions", { username: user.username }));
+      row.addEventListener("click", () => openUserActionsDialog(user));
+      row.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openUserActionsDialog(user);
+        }
+      });
       const values = [user.id, user.username];
       values.forEach((value) => { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); });
       const role = document.createElement("td");
       const roleBadge = document.createElement("span"); roleBadge.className = "badge role-badge"; roleBadge.textContent = roleName(user.role); role.append(roleBadge);
       const active = document.createElement("td"); active.textContent = I18n.t(user.is_active ? "active" : "inactive"); active.className = user.is_active ? "status-active" : "";
       const created = document.createElement("td"); created.textContent = formatDate(user.created_at);
-      const actionCell = document.createElement("td");
-      const action = document.createElement("button");
-      action.type = "button";
-      action.className = `button button-small ${user.is_active ? "button-danger" : "button-secondary"}`;
-      const ownAccount = user.id === state.user.id;
-      action.textContent = I18n.t(ownAccount ? "currentAccount" : (user.is_active ? "disableUser" : "enableUser"));
-      action.disabled = ownAccount;
-      if (!ownAccount) action.addEventListener("click", () => changeUserActive(user, !user.is_active, action));
-      actionCell.append(action);
-      row.append(role, active, created, actionCell); elements.usersBody.append(row);
+      row.append(role, active, created); elements.usersBody.append(row);
     });
     elements.usersCount.textContent = I18n.t("usersCount", { count: state.users.length });
     elements.usersLoading.classList.add("hidden");
@@ -145,16 +206,46 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   async function changeUserActive(user, active, button) {
-    if (!active && !window.confirm(I18n.t("confirmDisable", { username: user.username }))) return;
     button.disabled = true;
     try {
       await Api.request(`/api/users/${user.id}/active`, { method: "PATCH", body: { active } });
       showToast(I18n.t(active ? "userEnabled" : "userDisabled", { username: user.username }));
       await loadUsers();
+      return true;
     } catch (error) {
       button.disabled = false;
       if (error.status === 401) handleError(error);
       else showToast(error.body && error.body.detail ? error.body.detail : I18n.t("userStateError"));
+      return false;
+    }
+  }
+
+  async function updateUserPassword(event) {
+    event.preventDefault();
+    const user = state.passwordTarget;
+    if (!user) return;
+    const password = elements.resetPassword.value;
+    const button = elements.passwordUpdateButton;
+    button.disabled = true;
+    button.textContent = I18n.t("savingPassword");
+    elements.passwordMessage.textContent = "";
+    elements.passwordMessage.className = "form-message";
+    try {
+      await Api.request(`/api/users/${user.id}/password`, { method: "PATCH", body: { password } });
+      if (user.id === state.user.id) {
+        window.alert(I18n.t("ownPasswordChanged"));
+        window.location.replace("/login");
+        return;
+      }
+      closePasswordDialog();
+      showToast(I18n.t("passwordChanged", { username: user.username }));
+      await loadUsers();
+    } catch (error) {
+      elements.passwordMessage.textContent = error.body && error.body.detail ? error.body.detail : I18n.t("passwordChangeError");
+      elements.passwordMessage.className = "form-message error";
+    } finally {
+      button.disabled = false;
+      button.textContent = I18n.t("savePassword");
     }
   }
 
@@ -240,10 +331,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   elements.next.addEventListener("click", () => { if (state.meta && state.page < state.meta.pages) { state.page += 1; loadPasses(); } });
   document.querySelectorAll(".tab").forEach((button) => button.addEventListener("click", () => setTab(button.dataset.tab)));
   document.getElementById("create-user-form").addEventListener("submit", createUser);
+  elements.passwordForm.addEventListener("submit", updateUserPassword);
+  elements.toggleNewPassword.addEventListener("click", () => togglePassword(elements.newPassword, elements.toggleNewPassword));
+  elements.toggleResetPassword.addEventListener("click", () => togglePassword(elements.resetPassword, elements.toggleResetPassword));
   elements.openQr.addEventListener("click", openQrDialog);
   elements.closeQr.addEventListener("click", closeQrDialog);
   elements.qrDialog.addEventListener("click", (event) => {
     if (event.target === elements.qrDialog) closeQrDialog();
+  });
+  elements.closePasswordDialog.addEventListener("click", closePasswordDialog);
+  elements.passwordDialog.addEventListener("click", (event) => {
+    if (event.target === elements.passwordDialog) closePasswordDialog();
+  });
+  elements.closeUserActionsDialog.addEventListener("click", closeUserActionsDialog);
+  elements.userActionsDialog.addEventListener("click", (event) => {
+    if (event.target === elements.userActionsDialog) closeUserActionsDialog();
+  });
+  elements.userActionPassword.addEventListener("click", () => {
+    const user = state.actionsTarget;
+    if (!user) return;
+    closeUserActionsDialog();
+    openPasswordDialog(user);
+  });
+  elements.userActionActive.addEventListener("click", async () => {
+    const user = state.actionsTarget;
+    if (!user) return;
+    const updated = await changeUserActive(user, !user.is_active, elements.userActionActive);
+    if (updated) closeUserActionsDialog();
   });
   document.getElementById("logout-button").addEventListener("click", async () => {
     try { await Api.logout(); } finally { window.location.replace("/login"); }
@@ -255,5 +369,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     renderPasses();
     if (state.users.length) renderUsers();
+    syncUserActionDialog();
+    setPasswordToggle(elements.newPassword, elements.toggleNewPassword);
+    setPasswordToggle(elements.resetPassword, elements.toggleResetPassword);
   });
 });

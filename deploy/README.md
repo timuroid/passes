@@ -4,9 +4,9 @@
 
 Весь репозиторий. Реальные секреты в Git не добавляются: создайте `deploy/.env.production` из `.env.production.example`, сохраните его в Infisical или другом защищённом хранилище и подставьте на сервере.
 
-Фронтенд — статический Nginx-контейнер, поэтому отдельного runtime `.env` у него нет. `APP_PORT` в общем файле окружения — его единственная серверная настройка. Остальные значения относятся к Compose, PostgreSQL и backend.
+Фронтенд — статический Nginx-контейнер, поэтому отдельного runtime `.env` у него нет. `APP_PORT` в общем файле окружения — его единственная серверная настройка. Остальные значения относятся к Compose и backend.
 
-Миграции уже выделены в `project_files/app/backend/alembic/versions/`. При каждом запуске backend сам выполняет `alembic upgrade head`; вручную менять БД или запускать SQL не требуется.
+Миграции уже выделены в `project_files/app/backend/alembic/versions/`. При каждом запуске backend сам выполняет `alembic upgrade head`; вручную запускать SQL не требуется.
 
 ## Запуск
 
@@ -34,4 +34,4 @@ docker compose ps
 curl -fsS https://passes.intbis.ru/api/health
 ```
 
-Настройте резервное копирование named volume PostgreSQL. Не используйте `docker compose down -v`, если данные должны сохраниться.
+Настройте резервное копирование persistent volume. Не используйте `docker compose down -v`, если данные должны сохраниться.

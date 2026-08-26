@@ -71,6 +71,21 @@ class UserActivationUpdate(BaseModel):
     active: bool
 
 
+class UserPasswordUpdate(BaseModel):
+    password: str = Field(min_length=8, max_length=256)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if not any(char.isalpha() for char in value):
+            raise ValueError("Пароль должен содержать букву")
+        if not any(char.isdigit() for char in value):
+            raise ValueError("Пароль должен содержать цифру")
+        if not any(not char.isalnum() for char in value):
+            raise ValueError("Пароль должен содержать специальный символ")
+        return value
+
+
 class UserView(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

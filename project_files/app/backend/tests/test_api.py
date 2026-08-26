@@ -197,3 +197,36 @@ def test_admin_cannot_disable_self(app):
     )
     assert response.status_code == 409
     assert "собственную" in response.json()["detail"]
+
+
+def test_admin_resets_user_password_and_revokes_sessions(app):
+    admin_client = TestClient(app)
+    user_client = TestClient(app)
+    csrf = login(admin_client, "admin", "Admin-Local-2026!")
+    created = admin_client.post(
+        "/api/users",
+        json={"username": "reset.logist", "password": "Before-Local-2026!", "role": "logist"},
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert created.status_code == 201
+    assert login(user_client, "reset.logist", "Before-Local-2026!")
+
+    changed = admin_client.patch(
+        f"/api/users/{created.json()['id']}/password",
+        json={"password": "After-Local-2026!"},
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert changed.status_code == 200
+    assert "password" not in changed.json() and "password_hash" not in changed.json()
+    assert user_client.get("/api/passes").status_code == 401
+    assert user_client.post(
+        "/api/auth/login", json={"username": "reset.logist", "password": "Before-Local-2026!"}
+    ).status_code == 401
+    assert login(user_client, "reset.logist", "After-Local-2026!")
+
+    weak = admin_client.patch(
+        f"/api/users/{created.json()['id']}/password",
+        json={"password": "weakpass"},
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert weak.status_code == 422

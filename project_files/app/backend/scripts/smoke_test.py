@@ -121,9 +121,23 @@ def main():
     restored_client = ApiClient(base_url)
     restored_client.login(new_username, "Smoke-Local-2026!")
     assert any(item["id"] == pass_id for item in find(restored_client, vehicle_number))
+
+    updated_password = "Smoke-Updated-2026!"
+    _, changed_user = admin.request(
+        "PATCH", f"/api/users/{new_user['id']}/password", {"password": updated_password}
+    )
+    assert changed_user["id"] == new_user["id"]
+    try:
+        find(restored_client, vehicle_number)
+        raise AssertionError("Password reset did not revoke the user's active session")
+    except RuntimeError as error:
+        assert "HTTP 401" in str(error)
+    reset_client = ApiClient(base_url)
+    reset_client.login(new_username, updated_password)
+    assert any(item["id"] == pass_id for item in find(reset_client, vehicle_number))
     print(
         f"SMOKE PASS: {vehicle_number}; public -> logist -> hide -> restore; "
-        f"users={len(users)}; created -> disabled -> restored={new_username}"
+        f"users={len(users)}; created -> disabled -> restored -> password reset={new_username}"
     )
 
 

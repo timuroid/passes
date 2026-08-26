@@ -123,7 +123,7 @@
       <form id="create-user-form" class="user-create-card">
         <div class="user-create-heading">
           <strong data-i18n="createUserTitle">Создать пользователя</strong>
-          <span data-i18n="createUserLead">Учётная запись сохраняется в локальной базе.</span>
+          <span data-i18n="createUserLead">Укажите логин, пароль и роль.</span>
         </div>
         <div class="filter-field">
           <label for="new-username" data-i18n="username">Логин</label>
@@ -131,7 +131,10 @@
         </div>
         <div class="filter-field user-password-field">
           <label for="new-password" data-i18n="newPassword">Новый пароль</label>
-          <input id="new-password" type="password" minlength="8" maxlength="256" autocomplete="new-password" required>
+          <div class="password-control">
+            <input id="new-password" type="password" minlength="8" maxlength="256" autocomplete="new-password" required>
+            <button id="toggle-new-password" class="password-toggle" type="button" data-i18n="showPassword" data-i18n-aria-label="showPassword" aria-label="Показать пароль">Показать</button>
+          </div>
           <span class="field-hint" data-i18n="passwordRules">Не менее 8 символов: буква, цифра и спецсимвол.</span>
         </div>
         <div class="filter-field">
@@ -148,7 +151,7 @@
         <div class="table-summary"><strong data-i18n="usersTitle">Пользователи</strong><span id="users-count"></span></div>
         <div class="table-scroll">
           <table>
-            <thead><tr><th>#</th><th data-i18n="username">Логин</th><th data-i18n="role">Роль</th><th data-i18n="status">Статус</th><th data-i18n="createdAt">Создан</th><th data-i18n="actions">Действия</th></tr></thead>
+            <thead><tr><th>#</th><th data-i18n="username">Логин</th><th data-i18n="role">Роль</th><th data-i18n="status">Статус</th><th data-i18n="createdAt">Создан</th></tr></thead>
             <tbody id="users-body"></tbody>
           </table>
         </div>
@@ -163,6 +166,34 @@
         <h2 id="qr-dialog-title" data-i18n="qrDialogTitle">QR-код страницы водителя</h2>
         <p data-i18n="qrDialogLead">Отсканируйте код камерой телефона, чтобы открыть страницу отправки номера.</p>
         <img class="qr-dialog-image" src="/api/public/driver-qr.svg" alt="QR-код страницы водителя" data-i18n-alt="qrAlt">
+      </div>
+    </dialog>
+    <dialog id="password-dialog" class="password-dialog" aria-labelledby="password-dialog-title">
+      <form id="password-update-form" class="password-dialog-card" novalidate>
+        <button id="close-password-dialog" class="qr-dialog-close" type="button" data-i18n-aria-label="closePasswordDialog" aria-label="Закрыть окно">×</button>
+        <div class="eyebrow" data-i18n="passwordDialogEyebrow">Пользователь</div>
+        <h2 id="password-dialog-title" data-i18n="changePassword">Изменить пароль</h2>
+        <p id="password-dialog-user" class="password-dialog-user"></p>
+        <label for="reset-password" data-i18n="newPassword">Новый пароль</label>
+        <div class="password-control">
+          <input id="reset-password" type="password" minlength="8" maxlength="256" autocomplete="new-password" required>
+          <button id="toggle-reset-password" class="password-toggle" type="button" data-i18n="showPassword" data-i18n-aria-label="showPassword" aria-label="Показать пароль">Показать</button>
+        </div>
+        <span class="field-hint" data-i18n="passwordRules">Не менее 8 символов: буква, цифра и спецсимвол.</span>
+        <div id="password-update-message" class="form-message" role="status" aria-live="polite"></div>
+        <button id="password-update-button" class="button button-primary" type="submit" data-i18n="savePassword">Сохранить пароль</button>
+      </form>
+    </dialog>
+    <dialog id="user-actions-dialog" class="password-dialog" aria-labelledby="user-actions-dialog-title">
+      <div class="password-dialog-card">
+        <button id="close-user-actions-dialog" class="qr-dialog-close" type="button" data-i18n-aria-label="closeUserActionsDialog" aria-label="Закрыть окно">×</button>
+        <div class="eyebrow" data-i18n="passwordDialogEyebrow">Пользователь</div>
+        <h2 id="user-actions-dialog-title" data-i18n="userActionsTitle">Действия с пользователем</h2>
+        <p id="user-actions-dialog-user" class="password-dialog-user"></p>
+        <div class="modal-actions">
+          <button id="user-action-password" class="button button-ghost" type="button" data-i18n="changePassword">Изменить пароль</button>
+          <button id="user-action-active" class="button button-danger" type="button"></button>
+        </div>
       </div>
     </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>

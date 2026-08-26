@@ -133,6 +133,10 @@ a { color: inherit; }
 .user-create-card > .button { align-self: start; margin-top: 26px; }
 .user-create-card .field-hint { margin: 0; font-size: 11px; }
 .user-create-message { grid-column: 1 / -1; margin: 0; min-height: 20px; }
+.password-control { display: flex; gap: 8px; }
+.password-control input { min-width: 0; flex: 1; }
+.password-toggle { min-height: 42px; border: 1px solid var(--line); border-radius: 10px; padding: 0 11px; background: var(--surface-soft); color: var(--brand-dark); font-size: 13px; font-weight: 750; cursor: pointer; white-space: nowrap; }
+.password-toggle:hover { border-color: var(--brand); }
 .filter-field { display: grid; gap: 6px; min-width: 150px; }
 .filter-search { flex: 1; min-width: 180px; }
 .filter-field label { color: var(--muted); font-size: 12px; font-weight: 750; }
@@ -155,6 +159,9 @@ th { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spa
 td { font-size: 14px; }
 .vehicle-cell { font-size: 17px; font-weight: 800; letter-spacing: .045em; }
 .phone-cell { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.user-row { cursor: pointer; transition: background .15s ease; }
+.user-row:hover > td { background: var(--brand-soft); }
+.user-row:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 32%, transparent); outline-offset: -3px; }
 .badge { display: inline-flex; padding: 5px 9px; border-radius: 99px; font-size: 12px; font-weight: 800; }
 .badge-visible { color: var(--brand-dark); background: var(--brand-soft); }
 .badge-hidden { color: var(--warning); background: var(--warning-soft); }
@@ -175,6 +182,16 @@ td { font-size: 14px; }
 .qr-dialog-image { display: block; width: min(100%, 292px); margin: 0 auto; padding: 11px; border: 1px solid var(--line); border-radius: 18px; background: #fff; }
 .qr-dialog-close { position: absolute; top: 13px; right: 13px; width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); color: var(--ink); cursor: pointer; font-size: 28px; line-height: 1; }
 .qr-dialog-close:hover { border-color: var(--brand); color: var(--brand-dark); }
+.password-dialog { width: min(460px, calc(100% - 32px)); padding: 0; border: 0; border-radius: 24px; color: var(--ink); background: transparent; box-shadow: var(--shadow); }
+.password-dialog::backdrop { background: rgba(0, 0, 0, .56); backdrop-filter: blur(5px); }
+.password-dialog-card { position: relative; display: grid; gap: 12px; padding: 34px; background: var(--paper); border: 1px solid var(--line); border-radius: 24px; }
+.password-dialog-card h2 { margin: 0 42px 0 0; font-size: 30px; letter-spacing: -.03em; }
+.password-dialog-card label { color: var(--muted); font-size: 12px; font-weight: 750; }
+.password-dialog-card .field-hint { margin: -6px 0 2px; }
+.password-dialog-user { margin: -5px 0 6px; color: var(--muted); }
+.password-dialog-card .form-message { min-height: 20px; margin: 0; }
+.modal-actions { display: grid; gap: 10px; margin-top: 6px; }
+.modal-actions .button { width: 100%; }
 
 @media (max-width: 840px) {
   .public-main { padding-top: 32px; }
@@ -211,6 +228,7 @@ td { font-size: 14px; }
   .user-create-card { grid-template-columns: 1fr; }
   .user-create-heading, .user-create-message { grid-column: 1; flex-direction: column; gap: 4px; }
   .user-create-card .button { width: 100%; margin-top: 0; }
+  .password-dialog-card { padding: 28px 20px; }
   .filter-search, .filter-actions { grid-column: 1 / -1; }
   .filter-actions .button { flex: 1; }
   th, td { padding: 13px 12px; }

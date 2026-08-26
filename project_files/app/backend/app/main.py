@@ -25,6 +25,7 @@ from app.schemas import (
     UserView,
     UserCreate,
     UserActivationUpdate,
+    UserPasswordUpdate,
     VisibilityUpdate,
 )
 from app.security import (
@@ -322,6 +323,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db.commit()
         db.refresh(user)
         await request.app.state.events.publish({"type": "user.active", "id": user.id, "active": user.is_active})
+        return user
+
+    @application.patch("/api/users/{user_id}/password", response_model=UserView, tags=["admin"])
+    async def update_user_password(
+        user_id: int,
+        payload: UserPasswordUpdate,
+        request: Request,
+        _: AuthContext = Depends(require_admin_csrf),
+        db: Session = Depends(get_db),
+    ) -> User:
+        user = db.get(User, user_id)
+        if user is None:
+            raise HTTPException(status_code=404, detail="Пользователь не найден")
+        user.password_hash = hash_password(payload.password)
+        db.execute(delete(SessionToken).where(SessionToken.user_id == user.id))
+        db.commit()
+        db.refresh(user)
+        await request.app.state.events.publish({"type": "user.password", "id": user.id})
         return user
 
     @application.get("/api/events", tags=["events"])
