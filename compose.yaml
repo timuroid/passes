@@ -1,0 +1,65 @@
+name: ztz-pass-service
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ztz_passes}
+      POSTGRES_USER: ${POSTGRES_USER:-ztz_local}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ztz_local_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./project_files/app/backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ztz_local}:${POSTGRES_PASSWORD:-ztz_local_password}@db:5432/${POSTGRES_DB:-ztz_passes}
+      DEMO_LOGIST_USERNAME: ${DEMO_LOGIST_USERNAME:-logist}
+      DEMO_LOGIST_PASSWORD: ${DEMO_LOGIST_PASSWORD:-Logist-Local-2026!}
+      DEMO_ADMIN_USERNAME: ${DEMO_ADMIN_USERNAME:-admin}
+      DEMO_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD:-Admin-Local-2026!}
+      SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-12}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
+      APP_TIMEZONE: Europe/Moscow
+    depends_on:
+      db:
+        condition: service_healthy
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 15s
+    init: true
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./project_files/app/frontend
+    ports:
+      - "${APP_PORT:-18080}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/healthz >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    init: true
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

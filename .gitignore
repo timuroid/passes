@@ -1,0 +1,10 @@
+.env
+deploy/.env.production
+.DS_Store
+__pycache__/
+.pytest_cache/
+.playwright-cli/
+*.py[cod]
+*.sqlite3
+coverage.xml
+htmlcov/

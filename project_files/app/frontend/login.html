@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Вход · Пропуск ЗТЗ</title>
+  <script src="/assets/js/theme.js?v=20260825-2"></script>
+  <link rel="stylesheet" href="/assets/css/styles.css?v=20260825-3">
+  <script src="/assets/js/i18n.js?v=20260825-2" defer></script>
+  <script src="/assets/js/api.js?v=20260825-2" defer></script>
+  <script src="/assets/js/login.js?v=20260825-2" defer></script>
+</head>
+<body class="login-page">
+  <header class="site-header container">
+    <a class="brand" href="/">
+      <img class="brand-symbol" src="/assets/brand/ztz-symbol.svg" alt="">
+      <span class="brand-wordmark"><span>Загорский<br>трубный<br>завод</span><small>ГК «Уральская сталь»</small></span>
+      <span class="brand-copy" data-i18n="brandService">Сервис пропусков</span>
+    </a>
+    <div class="header-actions">
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Тёмная тема"><span aria-hidden="true">◐</span></button>
+      <select id="language-select" class="language-select" aria-label="Язык" data-i18n-aria-label="language">
+        <option value="ru">Русский</option>
+        <option value="tg">Тоҷикӣ</option>
+      </select>
+    </div>
+  </header>
+  <main class="login-main container">
+    <section class="login-card">
+      <div class="eyebrow" data-i18n="staffEyebrow">Для сотрудников</div>
+      <h1 data-i18n="loginTitle">Вход в кабинет</h1>
+      <p class="lead compact" data-i18n="loginLead">Используйте выданные логин и пароль.</p>
+      <form id="login-form" class="stack-form">
+        <label for="username" data-i18n="username">Логин</label>
+        <input id="username" name="username" type="text" autocomplete="username" maxlength="64" required>
+        <label for="password" data-i18n="password">Пароль</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required>
+        <button id="login-button" class="button button-primary" type="submit" data-i18n="login">Войти</button>
+        <div id="login-message" class="form-message" role="alert"></div>
+      </form>
+      <a class="back-link" href="/" data-i18n="backDriver">← Вернуться на страницу водителя</a>
+    </section>
+  </main>
+</body>
+</html>
