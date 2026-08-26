@@ -43,6 +43,7 @@ from app.security import (
     verify_password,
     hash_password,
 )
+from app.vehicle_numbers import normalize_vehicle_search
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -165,7 +166,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 detail="Слишком много отправок. Повторите через минуту.",
                 headers={"Retry-After": "60"},
             )
-        item = PassRequest(vehicle_number=payload.vehicle_number, phone_number=payload.phone_number)
+        item = PassRequest(
+            vehicle_number=payload.vehicle_number,
+            vehicle_number_search=normalize_vehicle_search(payload.vehicle_number),
+            phone_number=payload.phone_number,
+        )
         db.add(item)
         db.commit()
         db.refresh(item)
@@ -212,7 +217,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if date_from and date_to and date_from > date_to:
             raise HTTPException(status_code=422, detail="Начальная дата не может быть позже конечной")
         if search:
-            filters.append(PassRequest.vehicle_number.ilike(f"%{search.strip().upper()}%"))
+            search_key = normalize_vehicle_search(search)
+            if not search_key:
+                raise HTTPException(status_code=422, detail="Введите буквы или цифры для поиска")
+            filters.append(PassRequest.vehicle_number_search.contains(search_key, autoescape=True))
 
         effective_visibility = visibility if current.role == "admin" else "visible"
         if effective_visibility == "visible":

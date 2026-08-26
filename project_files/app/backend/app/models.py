@@ -28,10 +28,17 @@ class PassRequest(Base):
     __tablename__ = "pass_requests"
     __table_args__ = (
         Index("ix_pass_requests_visibility_submitted", "is_hidden", "submitted_at"),
+        Index(
+            "ix_pass_requests_vehicle_number_search_trgm",
+            "vehicle_number_search",
+            postgresql_using="gin",
+            postgresql_ops={"vehicle_number_search": "gin_trgm_ops"},
+        ),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     vehicle_number: Mapped[str] = mapped_column(String(24))
+    vehicle_number_search: Mapped[str] = mapped_column(String(24))
     phone_number: Mapped[str | None] = mapped_column(String(16), nullable=True)
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now, index=True)
     is_hidden: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -54,7 +54,8 @@ def find(client: ApiClient, vehicle_number: str, visibility="visible"):
 def main():
     base_url = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
     suffix = str(int(time.time()))[-7:]
-    vehicle_number = f"SMK-{suffix}"
+    vehicle_number = f"AA{suffix}C"
+    visual_equivalent_search = f"АА{suffix}С"
     phone_number = f"+7999{suffix}"
     public = ApiClient(base_url)
     logist = ApiClient(base_url)
@@ -69,7 +70,7 @@ def main():
     logist.login("logist", "Logist-Local-2026!")
     assert any(
         item["id"] == pass_id and item["phone_number"] == phone_number
-        for item in find(logist, vehicle_number)
+        for item in find(logist, visual_equivalent_search)
     )
 
     admin.login("admin", "Admin-Local-2026!")

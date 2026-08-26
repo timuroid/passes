@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.vehicle_numbers import normalize_vehicle_search
+
 
 class LoginRequest(BaseModel):
     username: str = Field(min_length=1, max_length=64)
@@ -22,6 +24,8 @@ class PublicPassCreate(BaseModel):
             raise ValueError("Номер должен содержать от 2 до 24 символов")
         if not all(char.isalnum() or char in {" ", "-"} for char in normalized):
             raise ValueError("Допустимы буквы, цифры, пробел и дефис")
+        if not normalize_vehicle_search(normalized):
+            raise ValueError("Введите номер автомобиля")
         return normalized
 
     @field_validator("phone_number")

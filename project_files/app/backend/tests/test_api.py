@@ -44,6 +44,21 @@ def test_public_submit_phone_validation(client: TestClient):
     assert response.status_code == 422
 
 
+def test_vehicle_search_matches_visual_cyrillic_and_latin_equivalents(app):
+    public_client = TestClient(app)
+    logist_client = TestClient(app)
+    created = public_client.post(
+        "/api/public/passes", json={"vehicle_number": "aa123c", "phone_number": "+79990000123"}
+    )
+    assert created.status_code == 201
+    assert created.json()["vehicle_number"] == "AA123C"
+
+    login(logist_client, "logist", "Logist-Local-2026!")
+    response = logist_client.get("/api/passes", params={"search": "аа123с"})
+    assert response.status_code == 200
+    assert [item["id"] for item in response.json()["items"]] == [created.json()["id"]]
+
+
 def test_admin_soft_hide_restore_and_users(app):
     public_client = TestClient(app)
     logist_client = TestClient(app)
