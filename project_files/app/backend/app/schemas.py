@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.vehicle_numbers import normalize_vehicle_search
+from app.vehicle_numbers import normalize_vehicle_input, normalize_vehicle_search
 
 
 class LoginRequest(BaseModel):
@@ -19,11 +19,9 @@ class PublicPassCreate(BaseModel):
     @field_validator("vehicle_number")
     @classmethod
     def normalize_vehicle_number(cls, value: str) -> str:
-        normalized = re.sub(r"\s+", " ", value.strip()).upper()
+        normalized = normalize_vehicle_input(value)
         if not 2 <= len(normalized) <= 24:
             raise ValueError("Номер должен содержать от 2 до 24 символов")
-        if not all(char.isalnum() or char in {" ", "-"} for char in normalized):
-            raise ValueError("Допустимы буквы, цифры, пробел и дефис")
         if not normalize_vehicle_search(normalized):
             raise ValueError("Введите номер автомобиля")
         return normalized
@@ -44,6 +42,14 @@ class PublicPassCreate(BaseModel):
 
 class VisibilityUpdate(BaseModel):
     hidden: bool
+
+
+class DriverThemeUpdate(BaseModel):
+    theme: Literal["light", "dark"]
+
+
+class PublicSettingsView(BaseModel):
+    driver_theme: Literal["light", "dark"]
 
 
 class UserCreate(BaseModel):

@@ -24,7 +24,7 @@ docker compose ps
 1. Выберите свободный поддомен `*.intbis.ru`, например `passes.intbis.ru`, и направьте DNS A/AAAA-запись на сервер.
 2. Скопируйте `nginx/passes.intbis.ru.conf.example` в конфигурацию Nginx, заменив домен.
 3. Выпустите бесплатный публичный сертификат Let's Encrypt (Certbot/инструмент Timeweb). Самоподписанный сертификат не использовать.
-4. В `deploy/.env.production` задайте тот же HTTPS-адрес в `PUBLIC_BASE_URL` и оставьте `COOKIE_SECURE=true`.
+4. Оставьте `COOKIE_SECURE=true` в `deploy/.env.production`.
 
 Внешний Nginx обязательно передаёт `Host` и `X-Forwarded-Proto: https`; это необходимо для same-origin/CSRF-проверки backend. Для SSE отключена буферизация и увеличен timeout.
 

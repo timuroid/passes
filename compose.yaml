@@ -28,7 +28,6 @@ services:
       DEMO_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD:-Admin-Local-2026!}
       SESSION_TTL_HOURS: ${SESSION_TTL_HOURS:-12}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
-      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-}
       APP_TIMEZONE: Europe/Moscow
     depends_on:
       db:

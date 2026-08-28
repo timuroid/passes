@@ -4,28 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Отправка номера автомобиля для оформления пропуска ЗТЗ">
-  <title>Пропуск ЗТЗ</title>
-  <script src="/assets/js/theme.js?v=20260825-2"></script>
-  <link rel="stylesheet" href="/assets/css/styles.css?v=20260825-3">
-  <script src="/assets/js/i18n.js?v=20260825-2" defer></script>
+  <title>Терминал ЗТЗ</title>
+  <link rel="stylesheet" href="/assets/css/styles.css?v=20260827-4">
+  <script src="/assets/js/public-theme.js?v=20260827-1" defer></script>
+  <script src="/assets/js/i18n.js?v=20260827-3" defer></script>
   <script src="/assets/js/api.js?v=20260825-2" defer></script>
-  <script src="/assets/js/public.js?v=20260825-2" defer></script>
+  <script src="/assets/js/public.js?v=20260827-4" defer></script>
 </head>
-<body class="public-page">
+<body class="public-page kiosk-page">
   <header class="site-header container">
-    <a class="brand" href="/" aria-label="Загорский трубный завод, ГК «Уральская сталь»">
+    <div class="brand" aria-label="Загорский трубный завод, ГК «Уральская сталь»">
       <img class="brand-symbol" src="/assets/brand/ztz-symbol.svg" alt="">
       <span class="brand-wordmark"><span>Загорский<br>трубный<br>завод</span><small>ГК «Уральская сталь»</small></span>
-      <span class="brand-copy" data-i18n="brandService">Сервис пропусков</span>
-    </a>
-    <div class="header-actions">
-      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Тёмная тема"><span aria-hidden="true">◐</span></button>
-      <label class="sr-only" for="language-select" data-i18n="language">Язык</label>
-      <select id="language-select" class="language-select" aria-label="Язык" data-i18n-aria-label="language">
-        <option value="ru">Русский</option>
-        <option value="tg">Тоҷикӣ</option>
-      </select>
-      <a class="text-link" href="/login" data-i18n="employeeLogin">Вход для сотрудников</a>
+    </div>
+    <div class="kiosk-language-switch" role="group" aria-label="Язык" data-i18n-aria-label="language">
+      <button type="button" data-language="ru">Русский</button>
+      <button type="button" data-language="tg">Тоҷикӣ</button>
+      <button type="button" data-language="uz">O‘zbekcha</button>
+      <button type="button" data-language="kk">Қазақша</button>
+      <button type="button" data-language="ky">Кыргызча</button>
+      <button type="button" data-language="az">Azərbaycanca</button>
     </div>
   </header>
 
@@ -34,28 +32,42 @@
       <div class="eyebrow" data-i18n="driverEyebrow">Водителям</div>
       <h1 data-i18n="driverTitle">Введите номер</h1>
       <form id="pass-form" class="pass-form" novalidate>
-        <label class="sr-only" for="vehicle-number" data-i18n="vehicleLabel">Номер автомобиля</label>
-        <input id="vehicle-number" name="vehicle_number" type="text" minlength="2" maxlength="24"
-               autocomplete="off" autocapitalize="characters" spellcheck="false"
-               data-i18n-placeholder="vehiclePlaceholder" placeholder="А 123 ВС 77" required>
-        <label class="sr-only" for="phone-number" data-i18n="phoneLabel">Номер телефона</label>
-        <input id="phone-number" name="phone_number" type="tel" maxlength="40" inputmode="tel" autocomplete="tel"
-               data-i18n-placeholder="phonePlaceholder" placeholder="+7 999 123-45-67" required>
-        <button id="submit-button" class="button button-primary" type="submit" data-i18n="send">Отправить</button>
+        <div class="kiosk-fields">
+          <span id="vehicle-number-label" class="sr-only" data-i18n="vehicleLabel">Номер автомобиля</span>
+          <div id="vehicle-number" class="kiosk-input" role="textbox" tabindex="0" aria-labelledby="vehicle-number-label"
+               aria-multiline="false" data-i18n-placeholder="vehiclePlaceholder" data-placeholder="A123BC77"></div>
+          <span id="phone-number-label" class="sr-only" data-i18n="phoneLabel">Номер телефона</span>
+          <div id="phone-number" class="kiosk-input" role="textbox" tabindex="0" aria-labelledby="phone-number-label"
+               aria-multiline="false" data-i18n-placeholder="phonePlaceholder" data-placeholder="+7 999 123-45-67"></div>
+          <button id="submit-button" class="button button-primary" type="submit" data-i18n="send">Отправить</button>
+        </div>
+        <section class="onscreen-keyboard" aria-labelledby="keyboard-title">
+          <div class="keyboard-heading">
+            <strong id="keyboard-title" data-i18n="vehicleKeyboard">Клавиатура номера</strong>
+            <span data-i18n="touchHint">Коснитесь поля, затем используйте кнопки</span>
+          </div>
+          <div id="vehicle-keyboard" class="keyboard-vehicle">
+            <div class="keyboard-grid keyboard-digits">
+              <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button>
+              <button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="0">0</button>
+            </div>
+            <div class="keyboard-grid keyboard-letters">
+              <button type="button" data-key="A">A</button><button type="button" data-key="B">B</button><button type="button" data-key="C">C</button><button type="button" data-key="D">D</button><button type="button" data-key="E">E</button><button type="button" data-key="F">F</button><button type="button" data-key="G">G</button><button type="button" data-key="H">H</button><button type="button" data-key="I">I</button><button type="button" data-key="J">J</button>
+              <button type="button" data-key="K">K</button><button type="button" data-key="L">L</button><button type="button" data-key="M">M</button><button type="button" data-key="N">N</button><button type="button" data-key="O">O</button><button type="button" data-key="P">P</button><button type="button" data-key="Q">Q</button><button type="button" data-key="R">R</button><button type="button" data-key="S">S</button><button type="button" data-key="T">T</button>
+              <button type="button" data-key="U">U</button><button type="button" data-key="V">V</button><button type="button" data-key="W">W</button><button type="button" data-key="X">X</button><button type="button" data-key="Y">Y</button><button type="button" data-key="Z">Z</button>
+            </div>
+            <button class="keyboard-delete" type="button" data-action="backspace" data-i18n-aria-label="backspace" aria-label="Удалить символ">⌫</button>
+          </div>
+          <div id="phone-keyboard" class="keyboard-grid keyboard-phone hidden">
+            <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+            <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+            <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+            <button type="button" data-key="+">+</button><button type="button" data-key="0">0</button><button type="button" data-action="backspace" data-i18n-aria-label="backspace" aria-label="Удалить символ">⌫</button>
+          </div>
+        </section>
         <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
       </form>
     </section>
-
-    <aside class="qr-card">
-      <div>
-        <div class="eyebrow" data-i18n="qrEyebrow">Быстрый доступ</div>
-        <h2 data-i18n="qrTitle">QR-код страницы</h2>
-        <p data-i18n="qrLead">Распечатайте код или откройте его на другом устройстве.</p>
-        <button id="copy-link" class="button button-secondary" type="button" data-i18n="copyLink">Скопировать ссылку</button>
-        <span id="copy-status" class="copy-status" role="status"></span>
-      </div>
-      <img class="qr-image" src="/api/public/driver-qr.svg" alt="QR-код страницы водителя" data-i18n-alt="qrAlt">
-    </aside>
   </main>
 
 </body>

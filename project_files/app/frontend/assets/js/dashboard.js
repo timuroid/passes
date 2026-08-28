@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
-  const state = { user: null, page: 1, pageSize: 25, meta: null, passes: [], users: [], activeTab: "passes", passwordTarget: null, actionsTarget: null };
+  const state = { user: null, page: 1, pageSize: 25, meta: null, passes: [], users: [], activeTab: "passes", passwordTarget: null, actionsTarget: null, driverTheme: "light", driverThemeMessageKey: "" };
   const elements = {
     currentUser: document.getElementById("current-user"),
     realtime: document.getElementById("realtime-status"), adminTabs: document.getElementById("admin-tabs"),
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     usersBody: document.getElementById("users-body"), usersCount: document.getElementById("users-count"),
     usersLoading: document.getElementById("users-loading"), passesPanel: document.getElementById("passes-panel"),
     usersPanel: document.getElementById("users-panel"), toast: document.getElementById("toast"),
-    openQr: document.getElementById("open-qr"), qrDialog: document.getElementById("qr-dialog"), closeQr: document.getElementById("close-qr"),
+    exportButton: document.getElementById("export-button"),
     passwordDialog: document.getElementById("password-dialog"), passwordDialogUser: document.getElementById("password-dialog-user"),
     passwordForm: document.getElementById("password-update-form"), resetPassword: document.getElementById("reset-password"),
     passwordMessage: document.getElementById("password-update-message"), passwordUpdateButton: document.getElementById("password-update-button"),
@@ -22,7 +22,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     toggleNewPassword: document.getElementById("toggle-new-password"), toggleResetPassword: document.getElementById("toggle-reset-password"),
     userActionsDialog: document.getElementById("user-actions-dialog"), userActionsDialogUser: document.getElementById("user-actions-dialog-user"),
     closeUserActionsDialog: document.getElementById("close-user-actions-dialog"), userActionPassword: document.getElementById("user-action-password"),
-    userActionActive: document.getElementById("user-action-active")
+    userActionActive: document.getElementById("user-action-active"), settingsPanel: document.getElementById("settings-panel"),
+    driverThemeMessage: document.getElementById("driver-theme-message"), driverThemeButtons: document.querySelectorAll("[data-driver-theme]")
   };
 
   function locale() { return I18n.language === "tg" ? "tg-TJ" : "ru-RU"; }
@@ -34,13 +35,41 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.toast.classList.add("show");
     window.setTimeout(() => elements.toast.classList.remove("show"), 2600);
   }
-  function openQrDialog() {
-    if (typeof elements.qrDialog.showModal === "function") elements.qrDialog.showModal();
-    else elements.qrDialog.setAttribute("open", "");
+  function renderDriverTheme(theme) {
+    state.driverTheme = theme === "dark" ? "dark" : "light";
+    elements.driverThemeButtons.forEach((button) => {
+      const active = button.dataset.driverTheme === state.driverTheme;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
   }
-  function closeQrDialog() {
-    if (typeof elements.qrDialog.close === "function") elements.qrDialog.close();
-    else elements.qrDialog.removeAttribute("open");
+  function setDriverThemeMessage(key, kind) {
+    state.driverThemeMessageKey = key;
+    elements.driverThemeMessage.textContent = key ? I18n.t(key) : "";
+    elements.driverThemeMessage.className = `form-message user-create-message ${kind || ""}`;
+  }
+  async function loadDriverTheme() {
+    try {
+      const settings = await Api.request("/api/public/settings");
+      renderDriverTheme(settings.driver_theme);
+      setDriverThemeMessage("", "");
+    } catch (_) {
+      setDriverThemeMessage("driverThemeError", "error");
+    }
+  }
+  async function changeDriverTheme(theme) {
+    elements.driverThemeButtons.forEach((button) => { button.disabled = true; });
+    setDriverThemeMessage("", "");
+    try {
+      const settings = await Api.request("/api/settings/driver-theme", { method: "PATCH", body: { theme } });
+      renderDriverTheme(settings.driver_theme);
+      setDriverThemeMessage("driverThemeSaved", "success");
+    } catch (error) {
+      if (error.status === 401) return handleError(error);
+      setDriverThemeMessage("driverThemeError", "error");
+    } finally {
+      elements.driverThemeButtons.forEach((button) => { button.disabled = false; });
+    }
   }
   function setPasswordToggle(input, button) {
     const visible = input.type === "text";
@@ -104,7 +133,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderPasses() {
     elements.passesBody.replaceChildren();
-    const admin = state.user.role === "admin";
     state.passes.forEach((item) => {
       const row = document.createElement("tr");
       const id = document.createElement("td"); id.textContent = item.id;
@@ -112,21 +140,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       const phone = document.createElement("td"); phone.textContent = item.phone_number || "—"; phone.className = "phone-cell";
       const received = document.createElement("td"); received.textContent = formatDate(item.submitted_at);
       row.append(id, vehicle, phone, received);
-      if (admin) {
-        const statusCell = document.createElement("td");
-        const badge = document.createElement("span");
-        badge.className = `badge ${item.is_hidden ? "badge-hidden" : "badge-visible"}`;
-        badge.textContent = I18n.t(item.is_hidden ? "hidden" : "visible");
-        statusCell.append(badge);
-        const actionCell = document.createElement("td");
-        const action = document.createElement("button");
-        action.type = "button";
-        action.className = `button button-small ${item.is_hidden ? "button-secondary" : "button-ghost"}`;
-        action.textContent = I18n.t(item.is_hidden ? "restore" : "hide");
-        action.addEventListener("click", () => changeVisibility(item, !item.is_hidden, action));
-        actionCell.append(action);
-        row.append(statusCell, actionCell);
-      }
+      const statusCell = document.createElement("td");
+      const badge = document.createElement("span");
+      badge.className = `badge ${item.is_hidden ? "badge-hidden" : "badge-visible"}`;
+      badge.textContent = I18n.t(item.is_hidden ? "hidden" : "visible");
+      statusCell.append(badge);
+      const actionCell = document.createElement("td");
+      const action = document.createElement("button");
+      action.type = "button";
+      action.className = `button button-small ${item.is_hidden ? "button-secondary" : "button-ghost"}`;
+      action.textContent = I18n.t(item.is_hidden ? "restore" : "hide");
+      action.addEventListener("click", () => changeVisibility(item, !item.is_hidden, action));
+      actionCell.append(action);
+      row.append(statusCell, actionCell);
       elements.passesBody.append(row);
     });
     const empty = state.passes.length === 0;
@@ -139,12 +165,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.next.disabled = !pages || state.page >= pages;
   }
 
-  async function loadPasses() {
-    elements.loading.classList.remove("hidden");
-    const params = new URLSearchParams({ page: state.page, page_size: state.pageSize, sort: document.getElementById("sort").value });
+  function buildPassParams(includePagination = true) {
+    const params = new URLSearchParams({ sort: document.getElementById("sort").value });
+    if (includePagination) {
+      params.set("page", state.page);
+      params.set("page_size", state.pageSize);
+    }
     const mappings = [["date-from", "date_from"], ["date-to", "date_to"], ["search", "search"]];
     mappings.forEach(([id, key]) => { const value = document.getElementById(id).value.trim(); if (value) params.set(key, value); });
-    if (state.user.role === "admin") params.set("visibility", document.getElementById("visibility").value);
+    params.set("visibility", document.getElementById("visibility").value);
+    return params;
+  }
+
+  async function loadPasses() {
+    elements.loading.classList.remove("hidden");
+    const params = buildPassParams();
     try {
       const result = await Api.request(`/api/passes?${params}`);
       if (result.meta.pages > 0 && state.page > result.meta.pages) {
@@ -157,6 +192,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (error) {
       elements.loading.classList.add("hidden");
       handleError(error);
+    }
+  }
+
+  async function exportPasses() {
+    const button = elements.exportButton;
+    button.disabled = true;
+    button.textContent = I18n.t("exportingExcel");
+    try {
+      const response = await fetch(`/api/passes/export.xlsx?${buildPassParams(false)}`, {
+        credentials: "same-origin",
+        headers: { Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+      });
+      if (response.status === 401) {
+        window.location.replace("/login");
+        return;
+      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const blob = await response.blob();
+      const disposition = response.headers.get("content-disposition") || "";
+      const filenameMatch = disposition.match(/filename="?([^";]+)"?/i);
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filenameMatch ? filenameMatch[1] : "vehicles.xlsx";
+      document.body.append(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    } catch (_) {
+      showToast(I18n.t("exportError"));
+    } finally {
+      button.disabled = false;
+      button.textContent = I18n.t("exportExcel");
     }
   }
 
@@ -281,7 +348,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button.dataset.tab === tab));
     elements.passesPanel.classList.toggle("hidden", tab !== "passes");
     elements.usersPanel.classList.toggle("hidden", tab !== "users");
-    if (tab === "users") loadUsers(); else loadPasses();
+    elements.settingsPanel.classList.toggle("hidden", tab !== "settings");
+    if (tab === "passes") loadPasses();
+    else if (tab === "users") loadUsers();
+    else loadDriverTheme();
   }
 
   function connectRealtime() {
@@ -293,7 +363,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     };
     source.addEventListener("refresh", () => {
-      if (state.activeTab === "passes") loadPasses(); else loadUsers();
+      if (state.activeTab === "passes") loadPasses();
+      else if (state.activeTab === "users") loadUsers();
     });
     source.onerror = () => {
       if (elements.realtime) {
@@ -315,16 +386,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const admin = state.user.role === "admin";
   elements.currentUser.textContent = `${state.user.username} · ${roleName(state.user.role)}`;
   elements.adminTabs.classList.toggle("hidden", !admin);
-  elements.visibilityField.classList.toggle("hidden", !admin);
-  elements.statusHeading.classList.toggle("hidden", !admin);
-  elements.actionsHeading.classList.toggle("hidden", !admin);
+  elements.visibilityField.classList.remove("hidden");
+  elements.statusHeading.classList.remove("hidden");
+  elements.actionsHeading.classList.remove("hidden");
   await loadPasses();
   connectRealtime();
   window.setInterval(() => { if (state.activeTab === "passes") loadPasses(); }, 30000);
 
   elements.filters.addEventListener("submit", (event) => { event.preventDefault(); state.page = 1; loadPasses(); });
   document.getElementById("reset-filters").addEventListener("click", () => {
-    elements.filters.reset(); document.getElementById("visibility").value = admin ? "all" : "visible"; state.page = 1; loadPasses();
+    elements.filters.reset(); document.getElementById("visibility").value = "visible"; state.page = 1; loadPasses();
   });
   elements.pageSize.addEventListener("change", () => { state.pageSize = Number(elements.pageSize.value); state.page = 1; loadPasses(); });
   elements.prev.addEventListener("click", () => { if (state.page > 1) { state.page -= 1; loadPasses(); } });
@@ -334,10 +405,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   elements.passwordForm.addEventListener("submit", updateUserPassword);
   elements.toggleNewPassword.addEventListener("click", () => togglePassword(elements.newPassword, elements.toggleNewPassword));
   elements.toggleResetPassword.addEventListener("click", () => togglePassword(elements.resetPassword, elements.toggleResetPassword));
-  elements.openQr.addEventListener("click", openQrDialog);
-  elements.closeQr.addEventListener("click", closeQrDialog);
-  elements.qrDialog.addEventListener("click", (event) => {
-    if (event.target === elements.qrDialog) closeQrDialog();
+  elements.exportButton.addEventListener("click", exportPasses);
+  elements.driverThemeButtons.forEach((button) => {
+    button.addEventListener("click", () => changeDriverTheme(button.dataset.driverTheme));
   });
   elements.closePasswordDialog.addEventListener("click", closePasswordDialog);
   elements.passwordDialog.addEventListener("click", (event) => {
@@ -369,6 +439,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     renderPasses();
     if (state.users.length) renderUsers();
+    renderDriverTheme(state.driverTheme);
+    if (state.driverThemeMessageKey) elements.driverThemeMessage.textContent = I18n.t(state.driverThemeMessageKey);
     syncUserActionDialog();
     setPasswordToggle(elements.newPassword, elements.toggleNewPassword);
     setPasswordToggle(elements.resetPassword, elements.toggleResetPassword);

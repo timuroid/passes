@@ -73,15 +73,24 @@ def main():
         for item in find(logist, visual_equivalent_search)
     )
 
-    admin.login("admin", "Admin-Local-2026!")
-    _, hidden = admin.request("PATCH", f"/api/passes/{pass_id}/visibility", {"hidden": True})
+    _, hidden = logist.request("PATCH", f"/api/passes/{pass_id}/visibility", {"hidden": True})
     assert hidden["is_hidden"] is True
     assert find(logist, vehicle_number) == []
-    assert any(item["id"] == pass_id for item in find(admin, vehicle_number, "hidden"))
+    assert any(item["id"] == pass_id for item in find(logist, vehicle_number, "hidden"))
 
-    _, restored = admin.request("PATCH", f"/api/passes/{pass_id}/visibility", {"hidden": False})
+    _, restored = logist.request("PATCH", f"/api/passes/{pass_id}/visibility", {"hidden": False})
     assert restored["is_hidden"] is False
     assert any(item["id"] == pass_id for item in find(logist, vehicle_number))
+
+    admin.login("admin", "Admin-Local-2026!")
+    _, public_settings = public.request("GET", "/api/public/settings")
+    original_theme = public_settings["driver_theme"]
+    test_theme = "dark" if original_theme == "light" else "light"
+    _, updated_theme = admin.request("PATCH", "/api/settings/driver-theme", {"theme": test_theme})
+    assert updated_theme["driver_theme"] == test_theme
+    _, refreshed_settings = public.request("GET", "/api/public/settings")
+    assert refreshed_settings["driver_theme"] == test_theme
+    admin.request("PATCH", "/api/settings/driver-theme", {"theme": original_theme})
 
     _, users = admin.request("GET", "/api/users")
     roles = {(user["username"], user["role"]) for user in users}
@@ -138,7 +147,7 @@ def main():
     assert any(item["id"] == pass_id for item in find(reset_client, vehicle_number))
     print(
         f"SMOKE PASS: {vehicle_number}; public -> logist -> hide -> restore; "
-        f"users={len(users)}; created -> disabled -> restored -> password reset={new_username}"
+        f"driver theme; users={len(users)}; created -> disabled -> restored -> password reset={new_username}"
     )
 
 

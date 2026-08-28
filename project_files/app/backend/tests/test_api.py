@@ -1,6 +1,8 @@
+import io
 from datetime import date
 
 from fastapi.testclient import TestClient
+from openpyxl import load_workbook
 
 from .conftest import login
 
@@ -23,7 +25,7 @@ def test_public_submit_logist_visibility_and_filters(app):
         "/api/public/passes", json={"vehicle_number": " а 123 вс-77 ", "phone_number": "+7 (999) 123-45-67"}
     )
     assert response.status_code == 201
-    assert response.json()["vehicle_number"] == "А 123 ВС-77"
+    assert response.json()["vehicle_number"] == "A123BC77"
     assert response.json()["phone_number"] == "+79991234567"
 
     login(logist_client, "logist", "Logist-Local-2026!")
@@ -34,7 +36,7 @@ def test_public_submit_logist_visibility_and_filters(app):
     )
     assert response.status_code == 200
     assert response.json()["meta"]["total"] == 1
-    assert response.json()["items"][0]["vehicle_number"] == "А 123 ВС-77"
+    assert response.json()["items"][0]["vehicle_number"] == "A123BC77"
     assert response.json()["items"][0]["phone_number"] == "+79991234567"
 
 
@@ -42,6 +44,9 @@ def test_public_submit_phone_validation(client: TestClient):
     assert client.post("/api/public/passes", json={"vehicle_number": "TEST 700"}).status_code == 422
     response = client.post("/api/public/passes", json={"vehicle_number": "TEST 701", "phone_number": "not-a-phone"})
     assert response.status_code == 422
+    assert client.post(
+        "/api/public/passes", json={"vehicle_number": "Ж 123", "phone_number": "+79990000123"}
+    ).status_code == 422
 
 
 def test_vehicle_search_matches_visual_cyrillic_and_latin_equivalents(app):
@@ -57,6 +62,30 @@ def test_vehicle_search_matches_visual_cyrillic_and_latin_equivalents(app):
     response = logist_client.get("/api/passes", params={"search": "аа123с"})
     assert response.status_code == 200
     assert [item["id"] for item in response.json()["items"]] == [created.json()["id"]]
+
+
+def test_export_xlsx_uses_filters_and_requires_auth(app):
+    public_client = TestClient(app)
+    logist_client = TestClient(app)
+    public_client.post(
+        "/api/public/passes", json={"vehicle_number": "EXPORT 101", "phone_number": "+79990000101"}
+    )
+    public_client.post(
+        "/api/public/passes", json={"vehicle_number": "OTHER 202", "phone_number": "+79990000202"}
+    )
+    assert public_client.get("/api/passes/export.xlsx").status_code == 401
+
+    login(logist_client, "logist", "Logist-Local-2026!")
+    response = logist_client.get("/api/passes/export.xlsx", params={"search": "export"})
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    workbook = load_workbook(io.BytesIO(response.content), read_only=True)
+    rows = list(workbook.active.values)
+    assert rows[0] == ("ID", "Номер автомобиля", "Телефон", "Получен", "Статус")
+    assert len(rows) == 2
+    assert rows[1][1:3] == ("EXPORT101", "+79990000101")
 
 
 def test_admin_soft_hide_restore_and_users(app):
@@ -100,19 +129,57 @@ def test_admin_soft_hide_restore_and_users(app):
     }
 
 
-def test_logist_cannot_hide_or_list_users(app):
+def test_logist_manages_pass_visibility_but_cannot_list_users(app):
     public_client = TestClient(app)
     logist_client = TestClient(app)
     item = public_client.post(
         "/api/public/passes", json={"vehicle_number": "TEST 101", "phone_number": "+79990000101"}
     ).json()
     csrf = login(logist_client, "logist", "Logist-Local-2026!")
-    assert logist_client.patch(
+    hidden = logist_client.patch(
         f"/api/passes/{item['id']}/visibility",
         json={"hidden": True},
         headers={"X-CSRF-Token": csrf},
-    ).status_code == 403
+    )
+    assert hidden.status_code == 200
+    assert hidden.json()["is_hidden"] is True
+    assert logist_client.get("/api/passes", params={"search": "TEST 101"}).json()["meta"]["total"] == 0
+    assert logist_client.get(
+        "/api/passes", params={"search": "TEST 101", "visibility": "hidden"}
+    ).json()["meta"]["total"] == 1
+    restored = logist_client.patch(
+        f"/api/passes/{item['id']}/visibility",
+        json={"hidden": False},
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert restored.status_code == 200
+    assert restored.json()["is_hidden"] is False
     assert logist_client.get("/api/users").status_code == 403
+
+
+def test_admin_controls_public_driver_theme(app):
+    public_client = TestClient(app)
+    logist_client = TestClient(app)
+    admin_client = TestClient(app)
+    assert public_client.get("/api/public/settings").json() == {"driver_theme": "light"}
+
+    logist_csrf = login(logist_client, "logist", "Logist-Local-2026!")
+    denied = logist_client.patch(
+        "/api/settings/driver-theme",
+        json={"theme": "dark"},
+        headers={"X-CSRF-Token": logist_csrf},
+    )
+    assert denied.status_code == 403
+
+    admin_csrf = login(admin_client, "admin", "Admin-Local-2026!")
+    updated = admin_client.patch(
+        "/api/settings/driver-theme",
+        json={"theme": "dark"},
+        headers={"X-CSRF-Token": admin_csrf},
+    )
+    assert updated.status_code == 200
+    assert updated.json() == {"driver_theme": "dark"}
+    assert public_client.get("/api/public/settings").json() == {"driver_theme": "dark"}
 
 
 def test_csrf_required_for_admin_change(app):

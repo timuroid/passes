@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Кабинет · Пропуск ЗТЗ</title>
+  <title>Список транспортных средств · ЗТЗ</title>
   <script src="/assets/js/theme.js?v=20260825-2"></script>
-  <link rel="stylesheet" href="/assets/css/styles.css?v=20260825-3">
-  <script src="/assets/js/i18n.js?v=20260825-2" defer></script>
+  <link rel="stylesheet" href="/assets/css/styles.css?v=20260827-4">
+  <script src="/assets/js/i18n.js?v=20260827-3" defer></script>
   <script src="/assets/js/api.js?v=20260825-2" defer></script>
-  <script src="/assets/js/dashboard.js?v=20260825-3" defer></script>
+  <script src="/assets/js/dashboard.js?v=20260827-3" defer></script>
 </head>
 <body class="dashboard-page">
   <header class="dashboard-header">
@@ -17,14 +17,9 @@
       <a class="brand" href="/app">
         <img class="brand-symbol" src="/assets/brand/ztz-symbol.svg" alt="">
         <span class="brand-wordmark"><span>Загорский<br>трубный<br>завод</span><small>ГК «Уральская сталь»</small></span>
-        <span class="brand-copy" data-i18n="brandService">Сервис пропусков</span>
       </a>
       <div class="header-actions">
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Тёмная тема"><span aria-hidden="true">◐</span></button>
-        <select id="language-select" class="language-select" aria-label="Язык" data-i18n-aria-label="language">
-          <option value="ru">Русский</option>
-          <option value="tg">Тоҷикӣ</option>
-        </select>
         <span id="current-user" class="current-user"></span>
         <button id="logout-button" class="button button-ghost button-small" type="button" data-i18n="logout">Выйти</button>
       </div>
@@ -34,14 +29,15 @@
   <main class="dashboard-main container">
     <section class="dashboard-intro">
       <div>
-        <h1 data-i18n="requestsTitle">Заявки на пропуск</h1>
+        <h1 data-i18n="requestsTitle">Список транспортных средств</h1>
       </div>
-      <button id="open-qr" class="button button-secondary" type="button" data-i18n="openQr">Открыть QR-код</button>
+      <button id="export-button" class="button button-secondary" type="button" data-i18n="exportExcel">Выгрузить в Excel</button>
     </section>
 
     <nav id="admin-tabs" class="tabs hidden" aria-label="Разделы">
       <button class="tab active" type="button" data-tab="passes" data-i18n="passesTab">Пропуска</button>
       <button class="tab" type="button" data-tab="users" data-i18n="usersTab">Пользователи</button>
+      <button class="tab" type="button" data-tab="settings" data-i18n="settingsTab">Настройки</button>
     </nav>
 
     <section id="passes-panel">
@@ -68,9 +64,9 @@
         <div id="visibility-field" class="filter-field hidden">
           <label for="visibility" data-i18n="visibility">Видимость</label>
           <select id="visibility">
-            <option value="all" data-i18n="allRecords">Все</option>
-            <option value="visible" data-i18n="visibleRecords">Видимые</option>
+            <option value="visible" selected data-i18n="visibleRecords">Активные</option>
             <option value="hidden" data-i18n="hiddenRecords">Скрытые</option>
+            <option value="all" data-i18n="allRecords">Все</option>
           </select>
         </div>
         <div class="filter-actions">
@@ -159,18 +155,23 @@
       </div>
     </section>
 
-    <dialog id="qr-dialog" class="qr-dialog" aria-labelledby="qr-dialog-title">
-      <div class="qr-dialog-card">
-        <button id="close-qr" class="qr-dialog-close" type="button" data-i18n-aria-label="closeQr" aria-label="Закрыть QR-код">×</button>
-        <div class="eyebrow" data-i18n="qrDialogEyebrow">Для водителей</div>
-        <h2 id="qr-dialog-title" data-i18n="qrDialogTitle">QR-код страницы водителя</h2>
-        <p data-i18n="qrDialogLead">Отсканируйте код камерой телефона, чтобы открыть страницу отправки номера.</p>
-        <img class="qr-dialog-image" src="/api/public/driver-qr.svg" alt="QR-код страницы водителя" data-i18n-alt="qrAlt">
+    <section id="settings-panel" class="hidden">
+      <div class="user-create-card settings-card">
+        <div class="user-create-heading">
+          <strong data-i18n="driverThemeTitle">Тема водительского киоска</strong>
+          <span data-i18n="driverThemeLead">Выбранная тема применяется на публичной водительской странице.</span>
+        </div>
+        <div class="driver-theme-options" role="group" data-i18n-aria-label="driverThemeTitle" aria-label="Тема водительского киоска">
+          <button class="button button-ghost" type="button" data-driver-theme="light" data-i18n="driverThemeLight">Светлая</button>
+          <button class="button button-ghost" type="button" data-driver-theme="dark" data-i18n="driverThemeDark">Тёмная</button>
+        </div>
+        <div id="driver-theme-message" class="form-message user-create-message" role="status" aria-live="polite"></div>
       </div>
-    </dialog>
+    </section>
+
     <dialog id="password-dialog" class="password-dialog" aria-labelledby="password-dialog-title">
       <form id="password-update-form" class="password-dialog-card" novalidate>
-        <button id="close-password-dialog" class="qr-dialog-close" type="button" data-i18n-aria-label="closePasswordDialog" aria-label="Закрыть окно">×</button>
+        <button id="close-password-dialog" class="dialog-close" type="button" data-i18n-aria-label="closePasswordDialog" aria-label="Закрыть окно">×</button>
         <div class="eyebrow" data-i18n="passwordDialogEyebrow">Пользователь</div>
         <h2 id="password-dialog-title" data-i18n="changePassword">Изменить пароль</h2>
         <p id="password-dialog-user" class="password-dialog-user"></p>
@@ -186,7 +187,7 @@
     </dialog>
     <dialog id="user-actions-dialog" class="password-dialog" aria-labelledby="user-actions-dialog-title">
       <div class="password-dialog-card">
-        <button id="close-user-actions-dialog" class="qr-dialog-close" type="button" data-i18n-aria-label="closeUserActionsDialog" aria-label="Закрыть окно">×</button>
+        <button id="close-user-actions-dialog" class="dialog-close" type="button" data-i18n-aria-label="closeUserActionsDialog" aria-label="Закрыть окно">×</button>
         <div class="eyebrow" data-i18n="passwordDialogEyebrow">Пользователь</div>
         <h2 id="user-actions-dialog-title" data-i18n="userActionsTitle">Действия с пользователем</h2>
         <p id="user-actions-dialog-user" class="password-dialog-user"></p>

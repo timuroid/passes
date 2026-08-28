@@ -10,6 +10,14 @@ VISUAL_EQUIVALENTS = str.maketrans({
 
 
 def normalize_vehicle_search(value: str) -> str:
-    """Build a stable search key while retaining the original displayed number."""
+    """Build a stable key and equate visually matching Cyrillic and Latin letters."""
     compact = re.sub(r"[\s-]+", "", value.strip()).upper()
     return compact.translate(VISUAL_EQUIVALENTS)
+
+
+def normalize_vehicle_input(value: str) -> str:
+    """Normalize driver input to the Latin-only format accepted by the kiosk."""
+    normalized = re.sub(r"[\s-]+", "", value.strip()).upper().translate(VISUAL_EQUIVALENTS)
+    if not re.fullmatch(r"[A-Z0-9]+", normalized):
+        raise ValueError("Допустимы латинские буквы и цифры")
+    return normalized

@@ -2,12 +2,12 @@ import io
 import math
 from datetime import date, datetime, time, timedelta, timezone
 from typing import Literal
-from urllib.parse import urlsplit
 from zoneinfo import ZoneInfo
 
-import segno
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response, status
 from fastapi.responses import StreamingResponse
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Font, PatternFill
 from sqlalchemy import delete, func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings, get_settings
 from app.database import build_engine, build_session_factory
 from app.events import EventBroker
-from app.models import PassRequest, SessionToken, User, utc_now
+from app.models import AppSetting, PassRequest, SessionToken, User, utc_now
 from app.schemas import (
     LoginRequest,
     PageMeta,
@@ -27,6 +27,8 @@ from app.schemas import (
     UserActivationUpdate,
     UserPasswordUpdate,
     VisibilityUpdate,
+    DriverThemeUpdate,
+    PublicSettingsView,
 )
 from app.security import (
     AuthContext,
@@ -52,7 +54,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     session_factory = build_session_factory(engine)
 
     application = FastAPI(
-        title="Сервис пропусков ЗТЗ",
+        title="Транспортные средства ЗТЗ",
         version="1.0.0",
         docs_url="/api/docs",
         openapi_url="/api/openapi.json",
@@ -68,6 +70,34 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def get_db(request: Request):
         with request.app.state.session_factory() as db:
             yield db
+
+    def build_pass_filters(
+        date_from: date | None,
+        date_to: date | None,
+        visibility: Literal["visible", "hidden", "all"],
+        search: str | None,
+    ) -> list:
+        filters = []
+        local_tz = ZoneInfo(settings.app_timezone)
+        if date_from:
+            start_local = datetime.combine(date_from, time.min, tzinfo=local_tz)
+            filters.append(PassRequest.submitted_at >= start_local.astimezone(timezone.utc))
+        if date_to:
+            end_local = datetime.combine(date_to + timedelta(days=1), time.min, tzinfo=local_tz)
+            filters.append(PassRequest.submitted_at < end_local.astimezone(timezone.utc))
+        if date_from and date_to and date_from > date_to:
+            raise HTTPException(status_code=422, detail="Начальная дата не может быть позже конечной")
+        if search:
+            search_key = normalize_vehicle_search(search)
+            if not search_key:
+                raise HTTPException(status_code=422, detail="Введите буквы или цифры для поиска")
+            filters.append(PassRequest.vehicle_number_search.contains(search_key, autoescape=True))
+
+        if visibility == "visible":
+            filters.append(PassRequest.is_hidden.is_(False))
+        elif visibility == "hidden":
+            filters.append(PassRequest.is_hidden.is_(True))
+        return filters
 
     @application.middleware("http")
     async def same_origin_and_no_store(request: Request, call_next):
@@ -177,22 +207,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         await request.app.state.events.publish({"type": "pass.created", "id": item.id})
         return item
 
-    @application.get("/api/public/driver-qr.svg", tags=["public"])
-    def driver_qr(request: Request) -> Response:
-        if settings.public_base_url:
-            target = f"{settings.public_base_url}/"
+    @application.get("/api/public/settings", response_model=PublicSettingsView, tags=["public"])
+    def public_settings(db: Session = Depends(get_db)) -> PublicSettingsView:
+        setting = db.get(AppSetting, "driver_theme")
+        theme = setting.value if setting and setting.value in {"light", "dark"} else "light"
+        return PublicSettingsView(driver_theme=theme)
+
+    @application.patch("/api/settings/driver-theme", response_model=PublicSettingsView, tags=["admin"])
+    async def update_driver_theme(
+        payload: DriverThemeUpdate,
+        request: Request,
+        _: AuthContext = Depends(require_admin_csrf),
+        db: Session = Depends(get_db),
+    ) -> PublicSettingsView:
+        setting = db.get(AppSetting, "driver_theme")
+        if setting is None:
+            setting = AppSetting(key="driver_theme", value=payload.theme)
+            db.add(setting)
         else:
-            scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
-            host = request.headers.get("host", request.url.netloc)
-            target = f"{scheme}://{host}/"
-        qr = segno.make(target, error="m")
-        output = io.BytesIO()
-        qr.save(output, kind="svg", scale=6, border=2, dark="#11261f", light="#ffffff")
-        return Response(
-            output.getvalue(),
-            media_type="image/svg+xml",
-            headers={"Cache-Control": "no-store", "Content-Disposition": "inline"},
-        )
+            setting.value = payload.theme
+        db.commit()
+        await request.app.state.events.publish({"type": "settings.driver_theme", "theme": payload.theme})
+        return PublicSettingsView(driver_theme=payload.theme)
 
     @application.get("/api/passes", response_model=PassPage, tags=["passes"])
     def list_passes(
@@ -203,30 +239,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         page_size: int = Query(25, ge=10, le=100),
         visibility: Literal["visible", "hidden", "all"] = "visible",
         search: str | None = Query(None, min_length=1, max_length=24),
-        current: AuthContext = Depends(get_current_user),
+        _: AuthContext = Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> PassPage:
-        filters = []
-        local_tz = ZoneInfo(settings.app_timezone)
-        if date_from:
-            start_local = datetime.combine(date_from, time.min, tzinfo=local_tz)
-            filters.append(PassRequest.submitted_at >= start_local.astimezone(timezone.utc))
-        if date_to:
-            end_local = datetime.combine(date_to + timedelta(days=1), time.min, tzinfo=local_tz)
-            filters.append(PassRequest.submitted_at < end_local.astimezone(timezone.utc))
-        if date_from and date_to and date_from > date_to:
-            raise HTTPException(status_code=422, detail="Начальная дата не может быть позже конечной")
-        if search:
-            search_key = normalize_vehicle_search(search)
-            if not search_key:
-                raise HTTPException(status_code=422, detail="Введите буквы или цифры для поиска")
-            filters.append(PassRequest.vehicle_number_search.contains(search_key, autoescape=True))
-
-        effective_visibility = visibility if current.role == "admin" else "visible"
-        if effective_visibility == "visible":
-            filters.append(PassRequest.is_hidden.is_(False))
-        elif effective_visibility == "hidden":
-            filters.append(PassRequest.is_hidden.is_(True))
+        filters = build_pass_filters(date_from, date_to, visibility, search)
 
         total = db.scalar(select(func.count()).select_from(PassRequest).where(*filters)) or 0
         ordering = PassRequest.submitted_at.asc() if sort == "asc" else PassRequest.submitted_at.desc()
@@ -246,12 +262,73 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             meta=PageMeta(page=page, page_size=page_size, total=total, pages=pages, sort=sort),
         )
 
+    @application.get("/api/passes/export.xlsx", tags=["passes"])
+    def export_passes(
+        date_from: date | None = None,
+        date_to: date | None = None,
+        sort: Literal["asc", "desc"] = "desc",
+        visibility: Literal["visible", "hidden", "all"] = "visible",
+        search: str | None = Query(None, min_length=1, max_length=24),
+        _: AuthContext = Depends(get_current_user),
+        db: Session = Depends(get_db),
+    ) -> Response:
+        filters = build_pass_filters(date_from, date_to, visibility, search)
+        ordering = PassRequest.submitted_at.asc() if sort == "asc" else PassRequest.submitted_at.desc()
+        id_ordering = PassRequest.id.asc() if sort == "asc" else PassRequest.id.desc()
+        items = list(db.scalars(select(PassRequest).where(*filters).order_by(ordering, id_ordering)))
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.title = "Транспортные средства"
+        headers = ["ID", "Номер автомобиля", "Телефон", "Получен", "Статус"]
+        sheet.append(headers)
+        header_fill = PatternFill("solid", fgColor="FF3C00")
+        for cell in sheet[1]:
+            cell.font = Font(color="FFFFFF", bold=True)
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center")
+
+        local_tz = ZoneInfo(settings.app_timezone)
+        for item in items:
+            submitted_at = item.submitted_at
+            if submitted_at.tzinfo is None:
+                submitted_at = submitted_at.replace(tzinfo=timezone.utc)
+            sheet.append(
+                [
+                    item.id,
+                    item.vehicle_number,
+                    item.phone_number or "",
+                    submitted_at.astimezone(local_tz).replace(tzinfo=None),
+                    "Скрыт" if item.is_hidden else "Активен",
+                ]
+            )
+
+        sheet.column_dimensions["A"].width = 10
+        sheet.column_dimensions["B"].width = 24
+        sheet.column_dimensions["C"].width = 22
+        sheet.column_dimensions["D"].width = 22
+        sheet.column_dimensions["E"].width = 14
+        sheet.freeze_panes = "A2"
+        for row in sheet.iter_rows(min_row=2):
+            row[1].number_format = "@"
+            row[2].number_format = "@"
+            row[3].number_format = "DD.MM.YYYY HH:MM"
+
+        output = io.BytesIO()
+        workbook.save(output)
+        filename = f"vehicles-{datetime.now(local_tz):%Y-%m-%d}.xlsx"
+        return Response(
+            output.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+
     @application.patch("/api/passes/{pass_id}/visibility", response_model=PassView, tags=["passes"])
     async def update_visibility(
         pass_id: int,
         payload: VisibilityUpdate,
         request: Request,
-        current: AuthContext = Depends(require_admin_csrf),
+        current: AuthContext = Depends(require_csrf),
         db: Session = Depends(get_db),
     ) -> PassRequest:
         item = db.get(PassRequest, pass_id)
