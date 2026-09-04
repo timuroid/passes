@@ -1,5 +1,6 @@
 ---
 area: work.uralsteel
+business_unit: ZTZ
 stage: inventory
 repository_kind: clone
 origin: "https://github.com/timuroid/passes.git"
