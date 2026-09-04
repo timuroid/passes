@@ -1,6 +1,6 @@
 ---
 area: work.uralsteel
-stage: active
+stage: inventory
 repository_kind: clone
 origin: "https://github.com/timuroid/passes.git"
 default_branch: "main"
