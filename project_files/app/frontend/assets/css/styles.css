@@ -89,6 +89,7 @@ a { color: inherit; }
 #phone-number { grid-area: phone; height: 66px; padding: 0 22px; font-size: 20px; letter-spacing: .02em; }
 .pass-form .button { grid-area: submit; min-height: 168px; padding-inline: 28px; font-size: 22px; }
 .pass-form .form-message { min-height: 28px; margin-top: 14px; }
+.pass-form .form-message.success { text-align: center; }
 .pass-form .kiosk-input.keyboard-active { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 18%, transparent); }
 .pass-form .kiosk-input:focus-visible { outline: 3px solid color-mix(in srgb, var(--brand) 22%, transparent); outline-offset: 1px; }
 .pass-form input:focus, .stack-form input:focus, select:focus { outline: 3px solid color-mix(in srgb, var(--brand) 22%, transparent); border-color: var(--brand); }
