@@ -27,6 +27,8 @@ from app.schemas import (
     UserActivationUpdate,
     UserPasswordUpdate,
     VisibilityUpdate,
+    DriverLanguage,
+    DriverTextSettings,
     DriverThemeUpdate,
     PublicSettingsView,
 )
@@ -67,9 +69,35 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     application.state.login_limiter = SlidingWindowLimiter(limit=10, window_seconds=60)
     application.state.submit_limiter = SlidingWindowLimiter(limit=30, window_seconds=60)
 
+    driver_languages = ("ru", "tg", "uz", "kk", "ky", "az")
+
     def get_db(request: Request):
         with request.app.state.session_factory() as db:
             yield db
+
+    def build_public_settings(db: Session) -> PublicSettingsView:
+        rows = {
+            item.key: item.value
+            for item in db.scalars(
+                select(AppSetting).where(
+                    AppSetting.key.in_(
+                        ["driver_theme"]
+                        + [f"driver_title_{language}" for language in driver_languages]
+                        + [f"driver_keyboard_note_{language}" for language in driver_languages]
+                    )
+                )
+            )
+        }
+        theme = rows.get("driver_theme", "light")
+        if theme not in {"light", "dark"}:
+            theme = "light"
+        driver_texts = {}
+        for language in driver_languages:
+            title = rows.get(f"driver_title_{language}")
+            keyboard_note = rows.get(f"driver_keyboard_note_{language}")
+            if title and keyboard_note:
+                driver_texts[language] = DriverTextSettings(title=title, keyboard_note=keyboard_note)
+        return PublicSettingsView(driver_theme=theme, driver_texts=driver_texts)
 
     def build_pass_filters(
         date_from: date | None,
@@ -209,9 +237,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @application.get("/api/public/settings", response_model=PublicSettingsView, tags=["public"])
     def public_settings(db: Session = Depends(get_db)) -> PublicSettingsView:
-        setting = db.get(AppSetting, "driver_theme")
-        theme = setting.value if setting and setting.value in {"light", "dark"} else "light"
-        return PublicSettingsView(driver_theme=theme)
+        return build_public_settings(db)
 
     @application.patch("/api/settings/driver-theme", response_model=PublicSettingsView, tags=["admin"])
     async def update_driver_theme(
@@ -228,7 +254,35 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             setting.value = payload.theme
         db.commit()
         await request.app.state.events.publish({"type": "settings.driver_theme", "theme": payload.theme})
-        return PublicSettingsView(driver_theme=payload.theme)
+        return build_public_settings(db)
+
+    @application.patch(
+        "/api/settings/driver-text/{language}",
+        response_model=DriverTextSettings,
+        tags=["admin"],
+    )
+    async def update_driver_text(
+        language: DriverLanguage,
+        payload: DriverTextSettings,
+        request: Request,
+        _: AuthContext = Depends(require_admin_csrf),
+        db: Session = Depends(get_db),
+    ) -> DriverTextSettings:
+        values = {
+            f"driver_title_{language}": payload.title,
+            f"driver_keyboard_note_{language}": payload.keyboard_note,
+        }
+        for key, value in values.items():
+            setting = db.get(AppSetting, key)
+            if setting is None:
+                db.add(AppSetting(key=key, value=value))
+            else:
+                setting.value = value
+        db.commit()
+        await request.app.state.events.publish(
+            {"type": "settings.driver_text", "language": language}
+        )
+        return payload
 
     @application.get("/api/passes", response_model=PassPage, tags=["passes"])
     def list_passes(

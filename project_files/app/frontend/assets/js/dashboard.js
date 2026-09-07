@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
-  const state = { user: null, page: 1, pageSize: 25, meta: null, passes: [], users: [], activeTab: "passes", passwordTarget: null, actionsTarget: null, driverTheme: "light", driverThemeMessageKey: "" };
+  const state = { user: null, page: 1, pageSize: 25, meta: null, passes: [], users: [], activeTab: "passes", passwordTarget: null, actionsTarget: null, driverTheme: "light", driverThemeMessageKey: "", driverTexts: {}, driverTextLanguage: "ru", driverTextMessageKey: "" };
   const elements = {
     currentUser: document.getElementById("current-user"),
     realtime: document.getElementById("realtime-status"), adminTabs: document.getElementById("admin-tabs"),
@@ -23,7 +23,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     userActionsDialog: document.getElementById("user-actions-dialog"), userActionsDialogUser: document.getElementById("user-actions-dialog-user"),
     closeUserActionsDialog: document.getElementById("close-user-actions-dialog"), userActionPassword: document.getElementById("user-action-password"),
     userActionActive: document.getElementById("user-action-active"), settingsPanel: document.getElementById("settings-panel"),
-    driverThemeMessage: document.getElementById("driver-theme-message"), driverThemeButtons: document.querySelectorAll("[data-driver-theme]")
+    driverThemeMessage: document.getElementById("driver-theme-message"), driverThemeButtons: document.querySelectorAll("[data-driver-theme]"),
+    driverTextForm: document.getElementById("driver-text-form"), driverTextLanguage: document.getElementById("driver-text-language"),
+    driverTitleSetting: document.getElementById("driver-title-setting"), driverKeyboardNoteSetting: document.getElementById("driver-keyboard-note-setting"),
+    saveDriverText: document.getElementById("save-driver-text"), driverTextMessage: document.getElementById("driver-text-message")
   };
 
   function locale() { return I18n.language === "tg" ? "tg-TJ" : "ru-RU"; }
@@ -48,13 +51,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.driverThemeMessage.textContent = key ? I18n.t(key) : "";
     elements.driverThemeMessage.className = `form-message user-create-message ${kind || ""}`;
   }
-  async function loadDriverTheme() {
+  function renderDriverTextForm() {
+    const language = state.driverTextLanguage;
+    const configured = state.driverTexts[language];
+    elements.driverTextLanguage.value = language;
+    elements.driverTitleSetting.value = configured?.title || I18n.tFor(language, "driverTitle");
+    elements.driverKeyboardNoteSetting.value = configured?.keyboard_note || I18n.tFor(language, "driverKeyboardNote");
+  }
+  function setDriverTextMessage(key, kind) {
+    state.driverTextMessageKey = key;
+    elements.driverTextMessage.textContent = key ? I18n.t(key) : "";
+    elements.driverTextMessage.className = `form-message user-create-message ${kind || ""}`;
+  }
+  async function loadDriverSettings(clearMessages = true) {
     try {
       const settings = await Api.request("/api/public/settings");
       renderDriverTheme(settings.driver_theme);
-      setDriverThemeMessage("", "");
+      state.driverTexts = settings.driver_texts || {};
+      renderDriverTextForm();
+      if (clearMessages) {
+        setDriverThemeMessage("", "");
+        setDriverTextMessage("", "");
+      }
     } catch (_) {
       setDriverThemeMessage("driverThemeError", "error");
+      setDriverTextMessage("driverTextError", "error");
     }
   }
   async function changeDriverTheme(theme) {
@@ -63,12 +84,43 @@ document.addEventListener("DOMContentLoaded", async () => {
     try {
       const settings = await Api.request("/api/settings/driver-theme", { method: "PATCH", body: { theme } });
       renderDriverTheme(settings.driver_theme);
+      state.driverTexts = settings.driver_texts || state.driverTexts;
       setDriverThemeMessage("driverThemeSaved", "success");
     } catch (error) {
       if (error.status === 401) return handleError(error);
       setDriverThemeMessage("driverThemeError", "error");
     } finally {
       elements.driverThemeButtons.forEach((button) => { button.disabled = false; });
+    }
+  }
+  async function saveDriverText(event) {
+    event.preventDefault();
+    if (!elements.driverTextForm.reportValidity()) return;
+    const language = state.driverTextLanguage;
+    const title = elements.driverTitleSetting.value.trim();
+    const keyboardNote = elements.driverKeyboardNoteSetting.value.trim();
+    const lines = keyboardNote.split(/\r?\n/).filter((line) => line.trim()).length;
+    if (lines > 2) {
+      setDriverTextMessage("driverTextLinesError", "error");
+      elements.driverKeyboardNoteSetting.focus();
+      return;
+    }
+    elements.saveDriverText.disabled = true;
+    elements.saveDriverText.textContent = I18n.t("savingDriverText");
+    setDriverTextMessage("", "");
+    try {
+      const updated = await Api.request(`/api/settings/driver-text/${language}`, {
+        method: "PATCH", body: { title, keyboard_note: keyboardNote }
+      });
+      state.driverTexts[language] = updated;
+      renderDriverTextForm();
+      setDriverTextMessage("driverTextSaved", "success");
+    } catch (error) {
+      if (error.status === 401) return handleError(error);
+      setDriverTextMessage("driverTextError", "error");
+    } finally {
+      elements.saveDriverText.disabled = false;
+      elements.saveDriverText.textContent = I18n.t("saveDriverText");
     }
   }
   function setPasswordToggle(input, button) {
@@ -351,7 +403,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.settingsPanel.classList.toggle("hidden", tab !== "settings");
     if (tab === "passes") loadPasses();
     else if (tab === "users") loadUsers();
-    else loadDriverTheme();
+    else loadDriverSettings();
   }
 
   function connectRealtime() {
@@ -362,9 +414,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         elements.realtime.lastElementChild.textContent = I18n.t("online");
       }
     };
-    source.addEventListener("refresh", () => {
+    source.addEventListener("refresh", (event) => {
+      let eventType = "";
+      try { eventType = JSON.parse(event.data).type || ""; } catch (_) { /* ignore malformed refresh */ }
       if (state.activeTab === "passes") loadPasses();
       else if (state.activeTab === "users") loadUsers();
+      else if (eventType.startsWith("settings.")) loadDriverSettings(false);
     });
     source.onerror = () => {
       if (elements.realtime) {
@@ -409,6 +464,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   elements.driverThemeButtons.forEach((button) => {
     button.addEventListener("click", () => changeDriverTheme(button.dataset.driverTheme));
   });
+  elements.driverTextLanguage.addEventListener("change", () => {
+    state.driverTextLanguage = elements.driverTextLanguage.value;
+    renderDriverTextForm();
+    setDriverTextMessage("", "");
+  });
+  elements.driverTextForm.addEventListener("submit", saveDriverText);
   elements.closePasswordDialog.addEventListener("click", closePasswordDialog);
   elements.passwordDialog.addEventListener("click", (event) => {
     if (event.target === elements.passwordDialog) closePasswordDialog();
@@ -441,6 +502,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (state.users.length) renderUsers();
     renderDriverTheme(state.driverTheme);
     if (state.driverThemeMessageKey) elements.driverThemeMessage.textContent = I18n.t(state.driverThemeMessageKey);
+    renderDriverTextForm();
+    if (state.driverTextMessageKey) elements.driverTextMessage.textContent = I18n.t(state.driverTextMessageKey);
     syncUserActionDialog();
     setPasswordToggle(elements.newPassword, elements.toggleNewPassword);
     setPasswordToggle(elements.resetPassword, elements.toggleResetPassword);

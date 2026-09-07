@@ -4,6 +4,11 @@ deploy/.env.production
 __pycache__/
 .pytest_cache/
 .playwright-cli/
+/output/playwright/
+/.codex/
+/.agents/
+/AGENTS.md
+/STATUS.md
 *.py[cod]
 *.sqlite3
 coverage.xml

@@ -9,11 +9,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const keyboardTitle = document.getElementById("keyboard-title");
   const vehicleKeyboard = document.getElementById("vehicle-keyboard");
   const phoneKeyboard = document.getElementById("phone-keyboard");
+  const driverTitle = document.getElementById("driver-title");
+  const driverKeyboardNote = document.getElementById("driver-keyboard-note");
   const visualEquivalents = { А: "A", В: "B", Е: "E", К: "K", М: "M", Н: "H", О: "O", Р: "P", С: "C", Т: "T", У: "Y", Х: "X" };
   const allowedVehicle = new Set("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
   let activeInput = vehicleInput;
   let currentMessageKey = "";
   let currentMessageValues = {};
+
+  function renderDriverText() {
+    const configured = window.PublicSettings?.driver_texts?.[I18n.language];
+    driverTitle.textContent = configured?.title || I18n.t("driverTitle");
+    driverKeyboardNote.textContent = configured?.keyboard_note || I18n.t("driverKeyboardNote");
+  }
 
   function setMessage(text, kind, key = "", values = {}) {
     currentMessageKey = key;
@@ -155,9 +163,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("ztz:language", () => {
     setActiveInput(activeInput);
+    renderDriverText();
     if (currentMessageKey) message.textContent = I18n.t(currentMessageKey, currentMessageValues);
   });
+  window.addEventListener("ztz:public-settings", renderDriverText);
   setValue(vehicleInput, "");
   setValue(phoneInput, "");
   setActiveInput(vehicleInput);
+  renderDriverText();
 });

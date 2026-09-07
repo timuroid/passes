@@ -48,8 +48,36 @@ class DriverThemeUpdate(BaseModel):
     theme: Literal["light", "dark"]
 
 
+DriverLanguage = Literal["ru", "tg", "uz", "kk", "ky", "az"]
+
+
+class DriverTextSettings(BaseModel):
+    title: str = Field(min_length=1, max_length=96)
+    keyboard_note: str = Field(min_length=1, max_length=300)
+
+    @field_validator("title")
+    @classmethod
+    def normalize_title(cls, value: str) -> str:
+        normalized = " ".join(value.split())
+        if not normalized:
+            raise ValueError("Введите заголовок")
+        return normalized
+
+    @field_validator("keyboard_note")
+    @classmethod
+    def normalize_keyboard_note(cls, value: str) -> str:
+        lines = [" ".join(line.split()) for line in value.replace("\r\n", "\n").split("\n")]
+        normalized_lines = [line for line in lines if line]
+        if not normalized_lines:
+            raise ValueError("Введите текст под клавиатурой")
+        if len(normalized_lines) > 2:
+            raise ValueError("Текст под клавиатурой должен занимать не более двух строк")
+        return "\n".join(normalized_lines)
+
+
 class PublicSettingsView(BaseModel):
     driver_theme: Literal["light", "dark"]
+    driver_texts: dict[str, DriverTextSettings] = Field(default_factory=dict)
 
 
 class UserCreate(BaseModel):

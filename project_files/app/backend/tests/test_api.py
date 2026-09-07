@@ -161,7 +161,10 @@ def test_admin_controls_public_driver_theme(app):
     public_client = TestClient(app)
     logist_client = TestClient(app)
     admin_client = TestClient(app)
-    assert public_client.get("/api/public/settings").json() == {"driver_theme": "light"}
+    assert public_client.get("/api/public/settings").json() == {
+        "driver_theme": "light",
+        "driver_texts": {},
+    }
 
     logist_csrf = login(logist_client, "logist", "Logist-Local-2026!")
     denied = logist_client.patch(
@@ -178,8 +181,56 @@ def test_admin_controls_public_driver_theme(app):
         headers={"X-CSRF-Token": admin_csrf},
     )
     assert updated.status_code == 200
-    assert updated.json() == {"driver_theme": "dark"}
-    assert public_client.get("/api/public/settings").json() == {"driver_theme": "dark"}
+    assert updated.json() == {"driver_theme": "dark", "driver_texts": {}}
+    assert public_client.get("/api/public/settings").json() == {
+        "driver_theme": "dark",
+        "driver_texts": {},
+    }
+
+
+def test_admin_configures_localized_driver_text(app):
+    public_client = TestClient(app)
+    logist_client = TestClient(app)
+    admin_client = TestClient(app)
+    logist_csrf = login(logist_client, "logist", "Logist-Local-2026!")
+    admin_csrf = login(admin_client, "admin", "Admin-Local-2026!")
+    payload = {
+        "title": "  Введите госномер  ",
+        "keyboard_note": "Используйте латинские буквы.\nПроверьте данные перед отправкой.",
+    }
+
+    denied = logist_client.patch(
+        "/api/settings/driver-text/ru",
+        json=payload,
+        headers={"X-CSRF-Token": logist_csrf},
+    )
+    assert denied.status_code == 403
+
+    updated = admin_client.patch(
+        "/api/settings/driver-text/ru",
+        json=payload,
+        headers={"X-CSRF-Token": admin_csrf},
+    )
+    assert updated.status_code == 200
+    assert updated.json() == {
+        "title": "Введите госномер",
+        "keyboard_note": "Используйте латинские буквы.\nПроверьте данные перед отправкой.",
+    }
+    settings = public_client.get("/api/public/settings").json()
+    assert settings["driver_texts"] == {"ru": updated.json()}
+
+    unsupported = admin_client.patch(
+        "/api/settings/driver-text/en",
+        json=payload,
+        headers={"X-CSRF-Token": admin_csrf},
+    )
+    assert unsupported.status_code == 422
+    too_many_lines = admin_client.patch(
+        "/api/settings/driver-text/tg",
+        json={"title": "Рақам", "keyboard_note": "Як\nДу\nСе"},
+        headers={"X-CSRF-Token": admin_csrf},
+    )
+    assert too_many_lines.status_code == 422
 
 
 def test_csrf_required_for_admin_change(app):

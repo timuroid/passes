@@ -44,7 +44,7 @@
 * { box-sizing: border-box; }
 html { min-height: 100%; }
 body { margin: 0; min-height: 100vh; background: var(--wash); }
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button, a, select { -webkit-tap-highlight-color: transparent; }
 a { color: inherit; }
 .container { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
@@ -97,19 +97,20 @@ a { color: inherit; }
 .keyboard-heading strong { font-size: 18px; }
 .keyboard-heading span { color: var(--muted); font-size: 13px; }
 .keyboard-grid { display: grid; gap: 8px; }
-.keyboard-vehicle { display: grid; grid-template-columns: minmax(0, 1fr) clamp(76px, 8vw, 96px); grid-template-areas: "digits delete" "letters delete"; gap: 10px 12px; }
-.keyboard-digits, .keyboard-letters { grid-template-columns: repeat(10, minmax(54px, 1fr)); }
-.keyboard-digits { grid-area: digits; }
-.keyboard-letters { grid-area: letters; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
-.keyboard-delete { grid-area: delete; min-height: 100%; border: 1px solid color-mix(in srgb, var(--brand) 45%, var(--line)); border-radius: 12px; background: var(--brand-soft); color: var(--brand-dark); cursor: pointer; font-size: 25px; font-weight: 800; box-shadow: 0 2px 0 color-mix(in srgb, var(--line) 80%, transparent); touch-action: manipulation; }
-.keyboard-delete:hover, .keyboard-delete:focus-visible { border-color: var(--brand); background: color-mix(in srgb, var(--brand-soft) 75%, var(--brand)); outline: none; }
-.keyboard-delete:active { transform: translateY(2px); box-shadow: none; }
+.keyboard-vehicle { display: grid; gap: 8px; }
+.keyboard-digits, .qwerty-top { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+.qwerty-top { padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent); }
+.qwerty-home { grid-template-columns: repeat(9, minmax(0, 1fr)); margin-inline: 5%; }
+.qwerty-bottom { grid-template-columns: repeat(8, minmax(0, 1fr)); margin-inline: 10%; }
 .keyboard-phone { grid-template-columns: repeat(3, minmax(72px, 1fr)); width: min(100%, 540px); margin-inline: auto; }
 .keyboard-grid button { min-height: 58px; padding: 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); color: var(--ink); cursor: pointer; font-size: 20px; font-weight: 800; box-shadow: 0 2px 0 color-mix(in srgb, var(--line) 80%, transparent); touch-action: manipulation; user-select: none; }
 .keyboard-grid button:hover, .keyboard-grid button:focus-visible { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-dark); }
 .keyboard-grid button:active { transform: translateY(2px); box-shadow: none; }
+.keyboard-grid .keyboard-delete { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); background: var(--brand-soft); color: var(--brand-dark); font-size: 25px; }
+.keyboard-grid .keyboard-delete:hover, .keyboard-grid .keyboard-delete:focus-visible { border-color: var(--brand); background: color-mix(in srgb, var(--brand-soft) 75%, var(--brand)); outline: none; }
 .keyboard-grid .key-wide { grid-column: span 2; }
 .keyboard-grid .key-muted { color: var(--muted); font-size: 15px; }
+.driver-keyboard-note { max-width: 720px; min-height: 42px; margin: 14px auto 0; color: var(--muted); font-size: 18px; line-height: 1.45; text-align: center; white-space: pre-line; }
 .field-hint { grid-column: 1 / -1; margin: 9px 0 0; color: var(--muted); font-size: 13px; }
 .button { border: 0; border-radius: 11px; padding: 13px 18px; font-weight: 750; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .15s ease, background .15s ease, opacity .15s ease; }
 .button:hover { transform: translateY(-1px); }
@@ -151,10 +152,16 @@ a { color: inherit; }
 .user-create-card select { padding-right: 38px; }
 .user-create-card > .button { align-self: start; margin-top: 26px; }
 .user-create-card .field-hint { margin: 0; font-size: 11px; }
-.settings-card { grid-template-columns: 1fr; max-width: 720px; }
+.settings-layout { display: grid; grid-template-columns: minmax(280px, .75fr) minmax(380px, 1.25fr); gap: 18px; align-items: start; }
+.settings-card { grid-template-columns: 1fr; max-width: none; margin-bottom: 0; }
 .driver-theme-options { display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 12px; }
 .driver-theme-options .button { min-height: 54px; }
 .driver-theme-options .button.active { background: var(--brand); color: #fff; border-color: var(--brand); }
+.driver-text-settings { grid-template-columns: minmax(160px, .45fr) minmax(240px, 1fr); }
+.driver-text-settings .user-create-heading, .driver-text-settings .driver-note-field, .driver-text-settings .user-create-message { grid-column: 1 / -1; }
+.driver-text-settings textarea { width: 100%; min-height: 88px; padding: 11px; resize: vertical; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); line-height: 1.45; }
+.driver-text-settings textarea:focus { outline: 3px solid color-mix(in srgb, var(--brand) 22%, transparent); border-color: var(--brand); }
+.settings-card > .button { justify-self: start; min-width: 190px; margin-top: 0; }
 .user-create-message { grid-column: 1 / -1; margin: 0; min-height: 20px; }
 .password-control { display: flex; gap: 8px; }
 .password-control input { min-width: 0; flex: 1; }
@@ -214,7 +221,7 @@ td { font-size: 14px; }
   .public-main { padding-top: 32px; }
   .hero-card { min-height: calc(100svh - 120px); }
   .kiosk-language-switch { grid-template-columns: repeat(3, minmax(110px, 1fr)); }
-  .keyboard-digits, .keyboard-letters { grid-template-columns: repeat(6, minmax(52px, 1fr)); }
+  .settings-layout { grid-template-columns: 1fr; }
   .brand-copy { display: none; }
   .dashboard-intro { align-items: flex-start; flex-direction: column; }
   .header-actions { gap: 8px; }
@@ -230,7 +237,7 @@ td { font-size: 14px; }
   .kiosk-language-switch { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kiosk-language-switch button { min-width: 0; min-height: 46px; padding: 8px 10px; font-size: 14px; }
   .public-main { padding: 16px 0 32px; }
-  .hero-card, .login-card { padding: 24px 18px; border-radius: 16px; }
+  .hero-card, .login-card { padding: 24px 14px; border-radius: 16px; }
   .hero-card { min-height: calc(100svh - 98px); justify-content: flex-start; }
   .hero-card h1 { font-size: 44px; margin-bottom: 24px; }
   .kiosk-fields { grid-template-columns: 1fr; grid-template-areas: "vehicle" "phone" "submit"; row-gap: 10px; }
@@ -239,14 +246,23 @@ td { font-size: 14px; }
   #phone-number { height: 60px; padding: 0 16px; font-size: 17px; }
   .pass-form .button { min-height: 66px; font-size: 18px; }
   .keyboard-heading { align-items: flex-start; flex-direction: column; gap: 3px; }
-  .keyboard-digits, .keyboard-letters { grid-template-columns: repeat(4, minmax(50px, 1fr)); }
-  .keyboard-grid button { min-height: 54px; font-size: 18px; }
+  .keyboard-vehicle { gap: 5px; }
+  .keyboard-grid { gap: 4px; }
+  .keyboard-grid button { min-height: 50px; padding: 4px 2px; border-radius: 8px; font-size: 16px; }
+  .keyboard-grid .keyboard-delete { font-size: 21px; }
+  .qwerty-top { padding-top: 8px; }
+  .qwerty-home { margin-inline: 4%; }
+  .qwerty-bottom { margin-inline: 8%; }
+  .driver-keyboard-note { min-height: 38px; margin-top: 12px; padding-inline: 6px; font-size: 16px; }
   .dashboard-main { padding-top: 26px; }
   .dashboard-intro .button { width: 100%; }
+  .tabs { width: 100%; gap: 0; }
+  .tab { min-width: 0; flex: 1; padding-inline: 8px; font-size: 13px; }
   .filters-card { display: grid; grid-template-columns: 1fr 1fr; }
   .user-create-card { grid-template-columns: 1fr; }
   .user-create-heading, .user-create-message { grid-column: 1; flex-direction: column; gap: 4px; }
   .user-create-card .button { width: 100%; margin-top: 0; }
+  .driver-text-settings .filter-field, .driver-text-settings .driver-note-field { grid-column: 1; }
   .password-dialog-card { padding: 28px 20px; }
   .filter-search, .filter-actions { grid-column: 1 / -1; }
   .filter-actions .button { flex: 1; }
@@ -266,7 +282,7 @@ td { font-size: 14px; }
   .onscreen-keyboard { margin-top: 14px; padding-top: 12px; }
   .keyboard-heading { margin-bottom: 8px; }
   .keyboard-vehicle { gap: 8px; }
-  .keyboard-letters { padding-top: 7px; }
+  .qwerty-top { padding-top: 7px; }
   .keyboard-grid { gap: 6px; }
   .keyboard-grid button { min-height: 46px; }
 }

@@ -5,6 +5,7 @@
     ru: {
       language: "Язык", themeLight: "Включить светлую тему", themeDark: "Включить тёмную тему",
       driverEyebrow: "Водителям", driverTitle: "Введите номер",
+      driverKeyboardNote: "Используйте латинские буквы и цифры.\nПроверьте номер и телефон перед отправкой.",
       vehicleLabel: "Номер автомобиля", vehiclePlaceholder: "A123BC77",
       phoneLabel: "Номер телефона", phonePlaceholder: "+7 999 123-45-67", invalidPhone: "Введите корректный номер телефона.",
       vehicleHint: "Можно использовать буквы, цифры, пробел и дефис.", send: "Отправить", sending: "Отправляем…",
@@ -21,6 +22,10 @@
       passesTab: "Транспорт", usersTab: "Пользователи", settingsTab: "Настройки", dateFrom: "Дата от", dateTo: "Дата до",
       driverThemeTitle: "Тема водительского киоска", driverThemeLead: "Выбранная тема применяется на публичной водительской странице.",
       driverThemeLight: "Светлая", driverThemeDark: "Тёмная", driverThemeSaved: "Тема водительской страницы сохранена.", driverThemeError: "Не удалось изменить тему водительской страницы.",
+      driverTextTitle: "Тексты водительского киоска", driverTextLead: "Настройте заголовок и короткий текст под клавиатурой для каждого языка.",
+      driverTextLanguage: "Язык текста", driverTitleLabel: "Заголовок", driverKeyboardNoteLabel: "Текст под клавиатурой",
+      driverKeyboardNoteHint: "До двух строк и 300 символов.", saveDriverText: "Сохранить тексты", savingDriverText: "Сохраняем…",
+      driverTextSaved: "Тексты водительской страницы сохранены.", driverTextError: "Не удалось сохранить тексты водительской страницы.", driverTextLinesError: "Оставьте не более двух строк.",
       searchNumber: "Поиск номера", searchPlaceholder: "Например, А 123", sortOrder: "Порядок",
       oldFirst: "Сначала ранние", newFirst: "Сначала поздние", visibility: "Видимость",
       allRecords: "Все", visibleRecords: "Активные", hiddenRecords: "Скрытые", apply: "Применить", reset: "Сбросить",
@@ -42,6 +47,7 @@
     tg: {
       language: "Забон", themeLight: "Фаъол кардани мавзӯи равшан", themeDark: "Фаъол кардани мавзӯи торик",
       driverEyebrow: "Барои ронандагон", driverTitle: "Рақамро ворид кунед",
+      driverKeyboardNote: "Ҳарфҳои лотинӣ ва рақамҳоро истифода баред.\nПеш аз ирсол рақам ва телефонро санҷед.",
       vehicleLabel: "Рақами автомобил", vehiclePlaceholder: "A123BC77",
       phoneLabel: "Рақами телефон", phonePlaceholder: "+7 999 123-45-67", invalidPhone: "Рақами дурусти телефонро ворид кунед.",
       vehicleHint: "Ҳарфҳо, рақамҳо, фосила ва дефис иҷозат дода мешаванд.", send: "Фиристодан", sending: "Фиристода истодааст…",
@@ -58,6 +64,10 @@
       passesTab: "Нақлиёт", usersTab: "Истифодабарандагон", settingsTab: "Танзимот", dateFrom: "Сана аз", dateTo: "Сана то",
       driverThemeTitle: "Мавзӯи киоски ронанда", driverThemeLead: "Мавзӯи интихобшуда дар саҳифаи оммавии ронанда истифода мешавад.",
       driverThemeLight: "Равшан", driverThemeDark: "Торик", driverThemeSaved: "Мавзӯи саҳифаи ронанда нигоҳ дошта шуд.", driverThemeError: "Мавзӯи саҳифаи ронанда тағйир дода нашуд.",
+      driverTextTitle: "Матнҳои киоски ронанда", driverTextLead: "Сарлавҳа ва матни кӯтоҳи зери клавиатураро барои ҳар забон танзим кунед.",
+      driverTextLanguage: "Забони матн", driverTitleLabel: "Сарлавҳа", driverKeyboardNoteLabel: "Матни зери клавиатура",
+      driverKeyboardNoteHint: "То ду сатр ва 300 аломат.", saveDriverText: "Нигоҳ доштани матнҳо", savingDriverText: "Нигоҳ дошта истодааст…",
+      driverTextSaved: "Матнҳои саҳифаи ронанда нигоҳ дошта шуданд.", driverTextError: "Матнҳои саҳифаи ронанда нигоҳ дошта нашуданд.", driverTextLinesError: "На бештар аз ду сатр монед.",
       searchNumber: "Ҷустуҷӯи рақам", searchPlaceholder: "Масалан, А 123", sortOrder: "Тартиб",
       oldFirst: "Аввал барвақт", newFirst: "Аввал дер", visibility: "Намоёнӣ",
       allRecords: "Ҳама", visibleRecords: "Фаъол", hiddenRecords: "Пинҳон", apply: "Татбиқ", reset: "Тоза кардан",
@@ -78,6 +88,7 @@
     },
     uz: {
       language: "Til", driverEyebrow: "Haydovchilar uchun", driverTitle: "Raqamni kiriting",
+      driverKeyboardNote: "Lotin harflari va raqamlardan foydalaning.\nYuborishdan oldin raqam va telefonni tekshiring.",
       vehicleLabel: "Avtomobil raqami", vehiclePlaceholder: "A123BC77", phoneLabel: "Telefon raqami", phonePlaceholder: "+7 999 123-45-67",
       invalidPhone: "To‘g‘ri telefon raqamini kiriting.", send: "Yuborish", sending: "Yuborilmoqda…",
       sent: "{vehicle} ishga qabul qilindi. Ko‘rsatilgan telefon orqali siz bilan bog‘lanishadi.", submitError: "Ma’lumot yuborilmadi. Qayta urinib ko‘ring.",
@@ -86,6 +97,7 @@
     },
     kk: {
       language: "Тіл", driverEyebrow: "Жүргізушілерге", driverTitle: "Нөмірді енгізіңіз",
+      driverKeyboardNote: "Латын әріптері мен сандарды пайдаланыңыз.\nЖіберер алдында нөмір мен телефонды тексеріңіз.",
       vehicleLabel: "Көлік нөмірі", vehiclePlaceholder: "A123BC77", phoneLabel: "Телефон нөмірі", phonePlaceholder: "+7 999 123-45-67",
       invalidPhone: "Дұрыс телефон нөмірін енгізіңіз.", send: "Жіберу", sending: "Жіберілуде…",
       sent: "{vehicle} жұмысқа қабылданды. Көрсетілген телефон арқылы сізбен хабарласады.", submitError: "Деректер жіберілмеді. Қайталап көріңіз.",
@@ -94,6 +106,7 @@
     },
     ky: {
       language: "Тил", driverEyebrow: "Айдоочулар үчүн", driverTitle: "Номерди киргизиңиз",
+      driverKeyboardNote: "Латын тамгаларын жана сандарды колдонуңуз.\nЖөнөтүүдөн мурун номерди жана телефонду текшериңиз.",
       vehicleLabel: "Унаанын номери", vehiclePlaceholder: "A123BC77", phoneLabel: "Телефон номери", phonePlaceholder: "+7 999 123-45-67",
       invalidPhone: "Туура телефон номерин киргизиңиз.", send: "Жөнөтүү", sending: "Жөнөтүлүүдө…",
       sent: "{vehicle} ишке кабыл алынды. Көрсөтүлгөн телефон аркылуу сиз менен байланышат.", submitError: "Маалымат жөнөтүлгөн жок. Кайра аракет кылыңыз.",
@@ -102,6 +115,7 @@
     },
     az: {
       language: "Dil", driverEyebrow: "Sürücülər üçün", driverTitle: "Nömrəni daxil edin",
+      driverKeyboardNote: "Latın hərfləri və rəqəmlərdən istifadə edin.\nGöndərməzdən əvvəl nömrəni və telefonu yoxlayın.",
       vehicleLabel: "Avtomobil nömrəsi", vehiclePlaceholder: "A123BC77", phoneLabel: "Telefon nömrəsi", phonePlaceholder: "+7 999 123-45-67",
       invalidPhone: "Düzgün telefon nömrəsini daxil edin.", send: "Göndər", sending: "Göndərilir…",
       sent: "{vehicle} işə qəbul edildi. Göstərilən telefonla sizinlə əlaqə saxlanılacaq.", submitError: "Məlumat göndərilmədi. Yenidən cəhd edin.",
@@ -115,10 +129,15 @@
   let language = isKiosk ? (localStorage.getItem(storageKey) || "ru") : "ru";
   if (!dictionaries[language]) language = "ru";
 
-  function t(key, values) {
-    let text = dictionaries[language][key] || dictionaries.ru[key] || key;
+  function tFor(targetLanguage, key, values) {
+    const dictionary = dictionaries[targetLanguage] || dictionaries.ru;
+    let text = dictionary[key] || dictionaries.ru[key] || key;
     Object.entries(values || {}).forEach(([name, value]) => { text = text.replaceAll(`{${name}}`, String(value)); });
     return text;
+  }
+
+  function t(key, values) {
+    return tFor(language, key, values);
   }
 
   function applyDocument() {
@@ -158,5 +177,5 @@
     });
   });
 
-  window.I18n = { t, setLanguage, get language() { return language; } };
+  window.I18n = { t, tFor, setLanguage, get language() { return language; } };
 })();

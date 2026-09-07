@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Отправка номера автомобиля для оформления пропуска ЗТЗ">
   <title>Терминал ЗТЗ</title>
-  <link rel="stylesheet" href="/assets/css/styles.css?v=20260827-4">
-  <script src="/assets/js/public-theme.js?v=20260827-1" defer></script>
-  <script src="/assets/js/i18n.js?v=20260827-3" defer></script>
+  <link rel="stylesheet" href="/assets/css/styles.css?v=20260904-1">
+  <script src="/assets/js/public-theme.js?v=20260904-1" defer></script>
+  <script src="/assets/js/i18n.js?v=20260904-1" defer></script>
   <script src="/assets/js/api.js?v=20260825-2" defer></script>
-  <script src="/assets/js/public.js?v=20260827-4" defer></script>
+  <script src="/assets/js/public.js?v=20260904-1" defer></script>
 </head>
 <body class="public-page kiosk-page">
   <header class="site-header container">
@@ -30,7 +30,7 @@
   <main class="public-main container">
     <section class="hero-card">
       <div class="eyebrow" data-i18n="driverEyebrow">Водителям</div>
-      <h1 data-i18n="driverTitle">Введите номер</h1>
+      <h1 id="driver-title" data-i18n="driverTitle">Введите номер</h1>
       <form id="pass-form" class="pass-form" novalidate>
         <div class="kiosk-fields">
           <span id="vehicle-number-label" class="sr-only" data-i18n="vehicleLabel">Номер автомобиля</span>
@@ -51,12 +51,18 @@
               <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button><button type="button" data-key="4">4</button><button type="button" data-key="5">5</button>
               <button type="button" data-key="6">6</button><button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button><button type="button" data-key="0">0</button>
             </div>
-            <div class="keyboard-grid keyboard-letters">
-              <button type="button" data-key="A">A</button><button type="button" data-key="B">B</button><button type="button" data-key="C">C</button><button type="button" data-key="D">D</button><button type="button" data-key="E">E</button><button type="button" data-key="F">F</button><button type="button" data-key="G">G</button><button type="button" data-key="H">H</button><button type="button" data-key="I">I</button><button type="button" data-key="J">J</button>
-              <button type="button" data-key="K">K</button><button type="button" data-key="L">L</button><button type="button" data-key="M">M</button><button type="button" data-key="N">N</button><button type="button" data-key="O">O</button><button type="button" data-key="P">P</button><button type="button" data-key="Q">Q</button><button type="button" data-key="R">R</button><button type="button" data-key="S">S</button><button type="button" data-key="T">T</button>
-              <button type="button" data-key="U">U</button><button type="button" data-key="V">V</button><button type="button" data-key="W">W</button><button type="button" data-key="X">X</button><button type="button" data-key="Y">Y</button><button type="button" data-key="Z">Z</button>
+            <div class="keyboard-grid qwerty-row qwerty-top">
+              <button type="button" data-key="Q">Q</button><button type="button" data-key="W">W</button><button type="button" data-key="E">E</button><button type="button" data-key="R">R</button><button type="button" data-key="T">T</button>
+              <button type="button" data-key="Y">Y</button><button type="button" data-key="U">U</button><button type="button" data-key="I">I</button><button type="button" data-key="O">O</button><button type="button" data-key="P">P</button>
             </div>
-            <button class="keyboard-delete" type="button" data-action="backspace" data-i18n-aria-label="backspace" aria-label="Удалить символ">⌫</button>
+            <div class="keyboard-grid qwerty-row qwerty-home">
+              <button type="button" data-key="A">A</button><button type="button" data-key="S">S</button><button type="button" data-key="D">D</button><button type="button" data-key="F">F</button><button type="button" data-key="G">G</button>
+              <button type="button" data-key="H">H</button><button type="button" data-key="J">J</button><button type="button" data-key="K">K</button><button type="button" data-key="L">L</button>
+            </div>
+            <div class="keyboard-grid qwerty-row qwerty-bottom">
+              <button type="button" data-key="Z">Z</button><button type="button" data-key="X">X</button><button type="button" data-key="C">C</button><button type="button" data-key="V">V</button><button type="button" data-key="B">B</button><button type="button" data-key="N">N</button><button type="button" data-key="M">M</button>
+              <button class="keyboard-delete" type="button" data-action="backspace" data-i18n-aria-label="backspace" aria-label="Удалить символ">⌫</button>
+            </div>
           </div>
           <div id="phone-keyboard" class="keyboard-grid keyboard-phone hidden">
             <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
@@ -65,6 +71,8 @@
             <button type="button" data-key="+">+</button><button type="button" data-key="0">0</button><button type="button" data-action="backspace" data-i18n-aria-label="backspace" aria-label="Удалить символ">⌫</button>
           </div>
         </section>
+        <p id="driver-keyboard-note" class="driver-keyboard-note" data-i18n="driverKeyboardNote">Используйте латинские буквы и цифры.
+Проверьте номер и телефон перед отправкой.</p>
         <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
       </form>
     </section>
