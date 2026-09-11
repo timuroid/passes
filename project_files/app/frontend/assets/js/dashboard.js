@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
-  const state = { user: null, page: 1, pageSize: 25, meta: null, passes: [], users: [], activeTab: "passes", passwordTarget: null, actionsTarget: null, driverTheme: "light", driverThemeMessageKey: "", driverTexts: {}, driverTextLanguage: "ru", driverTextMessageKey: "" };
+  const state = { user: null, page: 1, pageSize: 25, meta: null, passes: [], users: [], activeTab: "passes", passwordTarget: null, actionsTarget: null, driverTheme: "light", driverThemeMessageKey: "", driverTexts: {}, driverTextMessageKey: "" };
   const elements = {
     currentUser: document.getElementById("current-user"),
     realtime: document.getElementById("realtime-status"), adminTabs: document.getElementById("admin-tabs"),
@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     closeUserActionsDialog: document.getElementById("close-user-actions-dialog"), userActionPassword: document.getElementById("user-action-password"),
     userActionActive: document.getElementById("user-action-active"), settingsPanel: document.getElementById("settings-panel"),
     driverThemeMessage: document.getElementById("driver-theme-message"), driverThemeButtons: document.querySelectorAll("[data-driver-theme]"),
-    driverTextForm: document.getElementById("driver-text-form"), driverTextLanguage: document.getElementById("driver-text-language"),
+    driverTextForm: document.getElementById("driver-text-form"),
     driverTitleSetting: document.getElementById("driver-title-setting"), driverKeyboardNoteSetting: document.getElementById("driver-keyboard-note-setting"),
     saveDriverText: document.getElementById("save-driver-text"), driverTextMessage: document.getElementById("driver-text-message")
   };
@@ -52,11 +52,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.driverThemeMessage.className = `form-message user-create-message ${kind || ""}`;
   }
   function renderDriverTextForm() {
-    const language = state.driverTextLanguage;
-    const configured = state.driverTexts[language];
-    elements.driverTextLanguage.value = language;
-    elements.driverTitleSetting.value = configured?.title || I18n.tFor(language, "driverTitle");
-    elements.driverKeyboardNoteSetting.value = configured?.keyboard_note || I18n.tFor(language, "driverKeyboardNote");
+    const configured = state.driverTexts.ru;
+    elements.driverTitleSetting.value = configured?.title || I18n.tFor("ru", "driverTitle");
+    elements.driverKeyboardNoteSetting.value = configured?.keyboard_note || I18n.tFor("ru", "driverKeyboardNote");
   }
   function setDriverTextMessage(key, kind) {
     state.driverTextMessageKey = key;
@@ -96,7 +94,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function saveDriverText(event) {
     event.preventDefault();
     if (!elements.driverTextForm.reportValidity()) return;
-    const language = state.driverTextLanguage;
     const title = elements.driverTitleSetting.value.trim();
     const keyboardNote = elements.driverKeyboardNoteSetting.value.trim();
     const lines = keyboardNote.split(/\r?\n/).filter((line) => line.trim()).length;
@@ -109,10 +106,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     elements.saveDriverText.textContent = I18n.t("savingDriverText");
     setDriverTextMessage("", "");
     try {
-      const updated = await Api.request(`/api/settings/driver-text/${language}`, {
+      const updated = await Api.request("/api/settings/driver-text/ru", {
         method: "PATCH", body: { title, keyboard_note: keyboardNote }
       });
-      state.driverTexts[language] = updated;
+      state.driverTexts.ru = updated;
       renderDriverTextForm();
       setDriverTextMessage("driverTextSaved", "success");
     } catch (error) {
@@ -463,11 +460,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   elements.exportButton.addEventListener("click", exportPasses);
   elements.driverThemeButtons.forEach((button) => {
     button.addEventListener("click", () => changeDriverTheme(button.dataset.driverTheme));
-  });
-  elements.driverTextLanguage.addEventListener("change", () => {
-    state.driverTextLanguage = elements.driverTextLanguage.value;
-    renderDriverTextForm();
-    setDriverTextMessage("", "");
   });
   elements.driverTextForm.addEventListener("submit", saveDriverText);
   elements.closePasswordDialog.addEventListener("click", closePasswordDialog);

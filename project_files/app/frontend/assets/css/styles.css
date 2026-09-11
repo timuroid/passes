@@ -158,7 +158,7 @@ a { color: inherit; }
 .driver-theme-options { display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 12px; }
 .driver-theme-options .button { min-height: 54px; }
 .driver-theme-options .button.active { background: var(--brand); color: #fff; border-color: var(--brand); }
-.driver-text-settings { grid-template-columns: minmax(160px, .45fr) minmax(240px, 1fr); }
+.driver-text-settings { grid-template-columns: 1fr; }
 .driver-text-settings .user-create-heading, .driver-text-settings .driver-note-field, .driver-text-settings .user-create-message { grid-column: 1 / -1; }
 .driver-text-settings textarea { width: 100%; min-height: 88px; padding: 11px; resize: vertical; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); line-height: 1.45; }
 .driver-text-settings textarea:focus { outline: 3px solid color-mix(in srgb, var(--brand) 22%, transparent); border-color: var(--brand); }
