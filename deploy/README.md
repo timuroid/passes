@@ -6,7 +6,7 @@
 
 Фронтенд — статический Nginx-контейнер, поэтому отдельного runtime `.env` у него нет. `APP_PORT` в общем файле окружения — его единственная серверная настройка. Остальные значения относятся к Compose и backend.
 
-Миграции уже выделены в `project_files/app/backend/alembic/versions/`. При каждом запуске backend сам выполняет `alembic upgrade head`; вручную запускать SQL не требуется.
+Миграции находятся в `code/app/backend/alembic/versions/`. При каждом запуске backend сам выполняет `alembic upgrade head`; вручную запускать SQL не требуется.
 
 ## Запуск
 

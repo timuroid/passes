@@ -110,7 +110,7 @@ Smoke-тест создаёт одну диагностическую заявк
 - `frontend`: Nginx Unprivileged, статические HTML/CSS/JavaScript, обратный proxy `/api/*`.
 - `backend`: FastAPI + SQLAlchemy + Alembic, сессионная RBAC-авторизация, SSE и формирование Excel-файлов.
 
-Подробнее: [project_files/docs/ARCHITECTURE.md](project_files/docs/ARCHITECTURE.md). Описание HTTP-интерфейса: [project_files/docs/API.md](project_files/docs/API.md).
+Подробнее: [docs/Tech/ARCHITECTURE.md](docs/Tech/ARCHITECTURE.md). Описание HTTP-интерфейса: [docs/Tech/API.md](docs/Tech/API.md).
 
 ## Развёртывание на сервере
 
@@ -120,14 +120,16 @@ Smoke-тест создаёт одну диагностическую заявк
 
 ```text
 compose.yaml
-project_files/
+code/
   app/
     backend/       # FastAPI, миграции, тесты, smoke-тест
     frontend/      # Nginx и локализованный web UI
-  docs/            # архитектура и API
-  deliverables/
-  exports/
-  management/
+docs/
+  Product/         # бизнес-сценарии и пользовательские материалы
+  Tech/            # архитектура, API, запуск и эксплуатация
+project_files/
+  exports/         # экспортируемые сборки и отчёты
+  management/      # управленческие материалы
 Источники/
   inbox/
   reference/

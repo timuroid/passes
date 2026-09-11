@@ -19,7 +19,7 @@ services:
 
   backend:
     build:
-      context: ./project_files/app/backend
+      context: ./code/app/backend
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-ztz_local}:${POSTGRES_PASSWORD:-ztz_local_password}@db:5432/${POSTGRES_DB:-ztz_passes}
       DEMO_LOGIST_USERNAME: ${DEMO_LOGIST_USERNAME:-logist}
@@ -45,7 +45,7 @@ services:
 
   frontend:
     build:
-      context: ./project_files/app/frontend
+      context: ./code/app/frontend
     ports:
       - "${APP_PORT:-18080}:8080"
     depends_on:

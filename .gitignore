@@ -9,6 +9,7 @@ __pycache__/
 /.agents/
 /AGENTS.md
 /STATUS.md
+/Источники/
 *.py[cod]
 *.sqlite3
 coverage.xml
